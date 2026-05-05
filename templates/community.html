@@ -1,31 +1,68 @@
 {% extends "base.html" %}
 
-{% block title %}{{ app_name }} | Community{% endblock %}
-{% block page_label %}Student Community{% endblock %}
-{% block page_heading %}Community{% endblock %}
-{% block page_description %}Share notes, questions, materials, and lightweight polls with moderation built into the workflow.{% endblock %}
+{% block title %}{{ app_name }} | Community Hub{% endblock %}
+{% block page_label %}Student Community Hub{% endblock %}
+{% block page_heading %}Community Hub{% endblock %}
+{% block page_description %}Connect, share resources, and collaborate with fellow students in real-time.{% endblock %}
+
 {% block page_tools %}
-  <a class="button-link {{ 'button-secondary' if view_mode != 'all' else '' }}" href="{{ url_for('community', view='all') }}">Visible posts</a>
-  {% if current_user.department_id %}
-  <a class="button-link {{ 'button-secondary' if view_mode != 'department' else '' }}" href="{{ url_for('community', view='department') }}">My department</a>
-  {% endif %}
+  <div class="community-nav-tabs">
+    <a class="button-link {{ 'button-secondary' if active_tab != 'posting' else '' }}" href="{{ url_for('community', tab='posting') }}">
+      <span class="nav-icon">📝</span> Posting
+    </a>
+    <a class="button-link {{ 'button-secondary' if active_tab != 'live_chat' else '' }}" href="{{ url_for('community', tab='live_chat') }}">
+      <span class="nav-icon">💬</span> Live Chat
+    </a>
+    {% if current_user.department_id %}
+    <a class="button-link {{ 'button-secondary' if active_tab != 'department' else '' }}" href="{{ url_for('community', tab='department') }}">
+      <span class="nav-icon">🏫</span> {{ current_user.department_name }}
+    </a>
+    {% endif %}
+    <a class="button-link {{ 'button-secondary' if active_tab != 'all_departments' else '' }}" href="{{ url_for('community', tab='all_departments') }}">
+      <span class="nav-icon">🌍</span> All Departments
+    </a>
+  </div>
 {% endblock %}
 
 {% block content %}
 <section class="dashboard-board community-board">
   <div class="dashboard-main">
+    <!-- Posting Tab Content -->
+    {% if active_tab == 'posting' %}
     <section class="community-feed">
       {% for post in posts %}
       <article class="community-card">
         <div class="community-head">
           <div>
-            <span class="pill">{{ post.visibility|title }}</span>
+            <span class="pill">{{ post.post_type|title }}</span>
             <span class="pill pill-soft">{{ post.department_name }}</span>
+            {% if post.attachment_path %}
+            <span class="pill pill-info">📎 Attachment</span>
+            {% endif %}
           </div>
-          <small>{{ post.created_at }}</small>
+          <div class="post-meta">
+            <small>{{ post.created_at }}</small>
+            {% if post.author_id == current_user.id %}
+            <div class="post-actions">
+              <button class="button-small" onclick="editPost('{{ post.id }}')">Edit</button>
+              <form method="post" action="{{ url_for('delete_post', post_id=post.id) }}" style="display: inline;">
+                <button type="submit" class="button-small button-danger" onclick="return confirm('Delete this post?')">Delete</button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
         </div>
         <h3>{{ post.title }}</h3>
         <p>{{ post.body }}</p>
+        {% if post.attachment_path %}
+        <div class="attachment-block">
+          <a href="{{ media_url(post.attachment_path) }}" class="attachment-link" download>
+            <span class="file-icon">📄</span>
+            <span>{{ post.attachment_name }}</span>
+            <button class="button-small">Download</button>
+          </a>
+        </div>
+        {% endif %}
         <p class="muted-line">By {{ post.author_name }}</p>
 
         {% if post.post_type == 'poll' %}
@@ -79,10 +116,89 @@
       </article>
       {% else %}
       <div class="section-card">
-        <p class="empty-state">No community posts are visible with the current filter.</p>
+        <p class="empty-state">No posts yet. Create the first post to get started!</p>
       </div>
       {% endfor %}
     </section>
+
+    <!-- Live Chat Tab Content -->
+    {% elif active_tab == 'live_chat' %}
+    <section class="live-chat-section">
+      <div class="chat-container">
+        <div class="online-users">
+          <h4>Online Students</h4>
+          <div class="users-grid">
+            {% for user in online_users %}
+            <div class="user-avatar" onclick="openChatRoom('{{ user.id }}', '{{ user.full_name }}')">
+              <div class="avatar-wrapper">
+                <img src="{{ profile_image_url(user.profile_photo) }}" alt="{{ user.full_name }}" class="user-avatar-img">
+                <div class="online-indicator"></div>
+              </div>
+              <span class="user-name">{{ user.full_name }}</span>
+              <span class="user-dept">{{ user.department_name }}</span>
+            </div>
+            {% else %}
+            <p class="empty-state">No students are currently online.</p>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <div class="chat-room" id="chatRoom" style="display: none;">
+          <div class="chat-header">
+            <h4 id="chatRoomName">Chat Room</h4>
+            <button onclick="closeChatRoom()">✕</button>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded here -->
+          </div>
+          <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Department/All Departments Tab Content -->
+    {% else %}
+    <section class="community-feed">
+      {% for post in filtered_posts %}
+      <article class="community-card">
+        <div class="community-head">
+          <div>
+            <span class="pill">{{ post.post_type|title }}</span>
+            <span class="pill pill-soft">{{ post.department_name }}</span>
+            {% if post.attachment_path %}
+            <span class="pill pill-info">📎 Attachment</span>
+            {% endif %}
+          </div>
+          <small>{{ post.created_at }}</small>
+        </div>
+        <h3>{{ post.title }}</h3>
+        <p>{{ post.body }}</p>
+        {% if post.attachment_path %}
+        <div class="attachment-block">
+          <a href="{{ media_url(post.attachment_path) }}" class="attachment-link" download>
+            <span class="file-icon">📄</span>
+            <span>{{ post.attachment_name }}</span>
+            <button class="button-small">Download</button>
+          </a>
+        </div>
+        {% endif %}
+        <p class="muted-line">By {{ post.author_name }}</p>
+        
+        <div class="community-actions">
+          <span class="pill pill-soft">Likes: {{ post.likes_count }}</span>
+          <span class="pill pill-soft">Comments: {{ post.comments_count }}</span>
+        </div>
+      </article>
+      {% else %}
+      <div class="section-card">
+        <p class="empty-state">No posts available in this section.</p>
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
   </div>
 
   <aside class="dashboard-side">
@@ -91,38 +207,63 @@
       <div class="section-head">
         <div>
           <p class="eyebrow">Create Content</p>
-          <h3>Post note or poll</h3>
+          <h3>Share with community</h3>
         </div>
       </div>
-      <form method="post" action="{{ url_for('create_community_post') }}" class="form-grid">
+      <form method="post" action="{{ url_for('create_community_post') }}" class="form-grid" enctype="multipart/form-data">
         <label>
           Content type
           <select name="post_type" id="post_type">
-            <option value="post">Regular post</option>
-            <option value="poll">Poll</option>
+            <option value="note">📝 Study Note</option>
+            <option value="poll">📊 Poll</option>
+            <option value="document">📄 Document</option>
+            <option value="announcement">📢 Announcement</option>
           </select>
         </label>
         <label>
           Visibility
           <select name="visibility">
-            <option value="department">Same department</option>
+            <option value="department">My department</option>
             <option value="all">All departments</option>
           </select>
         </label>
         <label class="span-2">
           Title
-          <input type="text" name="title" required>
+          <input type="text" name="title" placeholder="Enter a descriptive title" required>
         </label>
         <label class="span-2">
-          Body
-          <textarea name="body" rows="5" required></textarea>
+          Content
+          <textarea name="body" rows="5" placeholder="Write your content here..." required></textarea>
         </label>
-        <label class="span-2" id="poll_options_wrap">
+        <label class="span-2" id="poll_options_wrap" style="display: none;">
           Poll options
-          <textarea name="poll_options" rows="4" placeholder="One option per line"></textarea>
+          <textarea name="poll_options" rows="4" placeholder="Enter each option on a new line"></textarea>
         </label>
-        <button type="submit">Publish content</button>
+        <label class="span-2" id="document_upload_wrap" style="display: none;">
+          Upload document
+          <input type="file" name="attachment" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png">
+          <small>PDFs, Word docs, presentations, images (Max 10MB)</small>
+        </label>
+        <button type="submit">Post to Community</button>
       </form>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="section-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Quick Actions</p>
+          <h3>Community tools</h3>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="button-small" onclick="showCreatePost('note')">📝 Quick Note</button>
+        <button class="button-small" onclick="showCreatePost('document')">📄 Share File</button>
+      </div>
+      <div class="action-row">
+        <button class="button-small" onclick="showCreatePost('poll')">📊 Create Poll</button>
+        <button class="button-small" onclick="refreshFeed()">🔄 Refresh</button>
+      </div>
     </section>
     {% endif %}
 
@@ -183,13 +324,118 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const typeField = document.getElementById("post_type");
-  const wrap = document.getElementById("poll_options_wrap");
-  if (!typeField || !wrap) return;
-  function sync() {
-    wrap.style.display = typeField.value === "poll" ? "block" : "none";
+  const pollWrap = document.getElementById("poll_options_wrap");
+  const docWrap = document.getElementById("document_upload_wrap");
+  
+  if (!typeField || !pollWrap || !docWrap) return;
+  
+  function syncFormFields() {
+    const postType = typeField.value;
+    
+    // Hide all optional fields first
+    pollWrap.style.display = "none";
+    docWrap.style.display = "none";
+    
+    // Show relevant fields based on post type
+    if (postType === "poll") {
+      pollWrap.style.display = "block";
+    } else if (postType === "document") {
+      docWrap.style.display = "block";
+    }
   }
-  typeField.addEventListener("change", sync);
-  sync();
+  
+  typeField.addEventListener("change", syncFormFields);
+  syncFormFields();
+});
+
+// Enhanced community functions
+function showCreatePost(type) {
+  const typeField = document.getElementById("post_type");
+  if (typeField) {
+    typeField.value = type;
+    typeField.dispatchEvent(new Event('change'));
+    
+    // Scroll to form
+    const form = typeField.closest('form');
+    if (form) {
+      form.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+}
+
+function editPost(postId) {
+  // This would open an edit modal or redirect to edit page
+  alert(`Edit post ${postId} - Feature would open edit form`);
+}
+
+function openChatRoom(userId, userName) {
+  const chatRoom = document.getElementById("chatRoom");
+  const chatRoomName = document.getElementById("chatRoomName");
+  const chatMessages = document.getElementById("chatMessages");
+  
+  if (chatRoom && chatRoomName && chatMessages) {
+    chatRoomName.textContent = `Chat with ${userName}`;
+    chatRoom.style.display = "flex";
+    
+    // Clear previous messages and add a welcome message
+    chatMessages.innerHTML = `
+      <div class="chat-message">
+        <div class="chat-bubble">Welcome to the chat with ${userName}!</div>
+      </div>
+    `;
+  }
+}
+
+function closeChatRoom() {
+  const chatRoom = document.getElementById("chatRoom");
+  if (chatRoom) {
+    chatRoom.style.display = "none";
+  }
+}
+
+function sendMessage() {
+  const messageInput = document.getElementById("messageInput");
+  const chatMessages = document.getElementById("chatMessages");
+  
+  if (messageInput && chatMessages && messageInput.value.trim()) {
+    const messageText = messageInput.value.trim();
+    
+    // Add message to chat
+    const messageDiv = document.createElement("div");
+    messageDiv.className = "chat-message own";
+    messageDiv.innerHTML = `<div class="chat-bubble">${messageText}</div>`;
+    chatMessages.appendChild(messageDiv);
+    
+    // Clear input and scroll to bottom
+    messageInput.value = "";
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Simulate response (in real app, this would be handled by WebSocket/Server)
+    setTimeout(() => {
+      const responseDiv = document.createElement("div");
+      responseDiv.className = "chat-message";
+      responseDiv.innerHTML = `<div class="chat-bubble">Thanks for your message! This is a demo response.</div>`;
+      chatMessages.appendChild(responseDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 1000);
+  }
+}
+
+function refreshFeed() {
+  // Reload the page to refresh the feed
+  window.location.reload();
+}
+
+// Handle Enter key in chat input
+document.addEventListener("DOMContentLoaded", () => {
+  const messageInput = document.getElementById("messageInput");
+  if (messageInput) {
+    messageInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+  }
 });
 </script>
 {% endif %}

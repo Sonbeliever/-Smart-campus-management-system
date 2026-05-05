@@ -22,6 +22,7 @@
 
 {% block content %}
 {% if current_user.role == 'student' %}
+<!-- Student Performance Metrics -->
 <section class="metric-grid metric-grid-4">
   <article class="metric-card">
     <span>Overall Attendance</span>
@@ -34,26 +35,28 @@
     <small>Courses at or above 70%</small>
   </article>
   <article class="metric-card">
-    <span>Pending Reprints</span>
-    <strong>{{ dashboard.pending_reprint_count }}</strong>
-    <small>ID card requests awaiting review</small>
+    <span>ID Card Status</span>
+    <strong>{{ 'Issued' if dashboard.student.id_card_generated_at else 'Pending' }}</strong>
+    <small>Digital identity card</small>
   </article>
   <article class="metric-card">
     <span>QR Identity</span>
     <strong>{% if dashboard.student.qr_path %}Ready{% else %}Pending{% endif %}</strong>
-    <small>Reusable for attendance and ID card</small>
+    <small>Reusable for attendance</small>
   </article>
 </section>
 
+<!-- Main Content Area -->
 <section class="dashboard-board">
   <div class="dashboard-main">
+    <!-- Academic Performance Section -->
     <article class="section-card">
       <div class="section-head">
         <div>
-          <p class="eyebrow">Attendance Overview</p>
-          <h3>Course eligibility snapshot</h3>
+          <p class="eyebrow">Academic Performance</p>
+          <h3>Course eligibility & attendance</h3>
         </div>
-        <a class="text-action" href="{{ url_for('my_attendance') }}">Open full attendance</a>
+        <a class="text-action" href="{{ url_for('my_attendance') }}">View full report</a>
       </div>
       <div class="stack-list">
         {% if dashboard.performance.general_summary %}
@@ -93,88 +96,92 @@
       </div>
     </article>
 
-    <article class="section-card">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Recent Log</p>
-            <h3>Latest attendance records</h3>
-          </div>
-        </div>
-        <div class="table-wrap compact-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Session</th>
-                <th>Type</th>
-                <th>Course</th>
-                <th>Date</th>
-                <th>Marked</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for row in dashboard.recent_attendance %}
-              <tr>
-                <td>{{ row.session_title }}</td>
-                <td>{{ row.session_type|title }}</td>
-                <td>{{ row.course_code or 'General' }}</td>
-                <td>{{ row.session_date }}</td>
-                <td>{{ row.marked_at }}</td>
-              </tr>
-              {% else %}
-              <tr>
-                <td colspan="5" class="empty-state">No attendance records yet.</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </article>
-  </div>
-
-  <aside class="dashboard-side">
+    <!-- Recent Activity Section -->
     <article class="section-card">
       <div class="section-head">
         <div>
-          <p class="eyebrow">ID Card Center</p>
-          <h3>Status and actions</h3>
+          <p class="eyebrow">Recent Activity</p>
+          <h3>Latest attendance records</h3>
+        </div>
+      </div>
+      <div class="table-wrap compact-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>Course</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in dashboard.recent_attendance %}
+            <tr>
+              <td>{{ row.session_title }}</td>
+              <td>{{ row.course_code or 'General' }}</td>
+              <td>{{ row.session_date }}</td>
+              <td><span class="status-badge status-good">Present</span></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" class="empty-state">No attendance records yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="dashboard-side">
+    <!-- Identity Management Section -->
+    <article class="section-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Identity Management</p>
+          <h3>Student ID & QR</h3>
         </div>
       </div>
       <div class="quick-stat-list">
         <div class="quick-stat">
-          <span>Card status</span>
-          <strong>{{ 'Issued' if dashboard.student.id_card_generated_at else 'Pending' }}</strong>
+          <span>ID Card</span>
+          <strong>{{ 'Issued' if dashboard.student.id_card_generated_at else 'Generate' }}</strong>
         </div>
         <div class="quick-stat">
-          <span>QR status</span>
-          <strong>{% if dashboard.student.qr_path %}Ready{% else %}Pending{% endif %}</strong>
+          <span>QR Code</span>
+          <strong>{% if dashboard.student.qr_path %}Active{% else %}Pending{% endif %}</strong>
         </div>
         <div class="quick-stat">
-          <span>Reprints used</span>
+          <span>Reprints</span>
           <strong>{{ dashboard.student.id_card_reprint_count }}</strong>
         </div>
       </div>
       <div class="action-row">
-        <a class="button-link" href="{{ url_for('id_card') }}">Open ID card center</a>
-        <a class="button-link button-secondary" href="{{ url_for('community') }}">Open community</a>
+        <a class="button-link" href="{{ url_for('id_card') }}">Manage ID Card</a>
       </div>
     </article>
 
+    <!-- Community & Resources Section -->
     <article class="section-card">
       <div class="section-head">
         <div>
-          <p class="eyebrow">Performance Summary</p>
-          <h3>Eligibility guide</h3>
+          <p class="eyebrow">Community</p>
+          <h3>Student resources</h3>
         </div>
       </div>
       <div class="mini-card-list">
         <div class="mini-card">
-          <strong>Exam threshold</strong>
-          <span>Reach at least 70% attendance per course to stay eligible.</span>
+          <strong>Community Hub</strong>
+          <span>Connect with fellow students and share resources.</span>
         </div>
         <div class="mini-card">
-          <strong>Attendance identity</strong>
-          <span>Your QR code is shared across attendance scans and your student ID card.</span>
+          <strong>Academic Support</strong>
+          <span>Access course materials and study guides.</span>
         </div>
+      </div>
+      <div class="action-row">
+        <a class="button-link" href="{{ url_for('community') }}">Open Community</a>
       </div>
     </article>
   </aside>
