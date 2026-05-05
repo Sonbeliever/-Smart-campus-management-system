@@ -1783,7 +1783,7 @@ button.icon-button svg {
 }
 
 .menu-toggle {
-  display: none;
+  display: none !important;
 }
 
 .workspace-heading {
@@ -2657,7 +2657,7 @@ tbody td {
   }
 
   .menu-toggle {
-    display: inline-flex;
+    display: inline-flex !important;
   }
 
   .sidebar-shell {

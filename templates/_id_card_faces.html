@@ -28,6 +28,14 @@
           <strong>{{ student.department_name }}</strong>
         </div>
         <div class="id-info-row">
+          <span>Faculty</span>
+          <strong>{{ student.faculty or 'Education' }}</strong>
+        </div>
+        <div class="id-info-row">
+          <span>Programme</span>
+          <strong>{{ student.programme or 'Undergraduate Programme' }}</strong>
+        </div>
+        <div class="id-info-row">
           <span>Phone Number</span>
           <strong>{{ student.phone }}</strong>
         </div>
@@ -58,6 +66,10 @@
       <div class="id-back-contact">
         <span>OFFICE ADDRESS</span>
         <strong>Tafawa Balewa Way, Kaduna State</strong>
+      </div>
+      <div class="id-back-contact">
+        <span>WEBSITE</span>
+        <strong>www.kasu.edu.ng</strong>
       </div>
       <div class="id-back-contact">
         <span>STUDENT RECORD</span>

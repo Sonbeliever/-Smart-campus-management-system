@@ -569,7 +569,7 @@ def get_account(account_id: int | None) -> sqlite3.Row | None:
     conn = get_conn()
     row = conn.execute(
         """
-        SELECT a.*, d.name AS department_name, d.code AS department_code
+        SELECT a.*, d.name AS department_name, d.code AS department_code, d.faculty, d.programme
         FROM accounts a
         LEFT JOIN departments d ON d.id = a.department_id
         WHERE a.id = ?
