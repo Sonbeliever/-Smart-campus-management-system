@@ -3109,3 +3109,497 @@ tbody td {
   background: var(--accent-soft);
   color: var(--accent);
 }
+
+/* Active Students Section */
+.active-students-section {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: var(--border);
+  margin-bottom: 20px;
+}
+
+.active-students-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.active-students-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.see-all-link {
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.active-students-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+}
+
+.active-student-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.active-student-avatar {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.active-student-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.active-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  background: #3b82f6;
+  border: 2px solid var(--card-bg);
+  border-radius: 50%;
+}
+
+.active-student-name {
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  color: var(--text);
+}
+
+.more-students {
+  background: var(--accent-soft);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Feed Post Design */
+.feed-post {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: var(--border);
+  margin-bottom: 16px;
+}
+
+.feed-post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.feed-post-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feed-user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.feed-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.feed-user-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.feed-user-username {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.feed-post-time {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.feed-post-content {
+  margin-bottom: 16px;
+}
+
+.feed-post-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.feed-post-body {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.feed-attachment {
+  margin-top: 12px;
+}
+
+.feed-attachment-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--accent-soft);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text);
+  transition: var(--transition);
+}
+
+.feed-attachment-link:hover {
+  background: var(--accent);
+  color: white;
+}
+
+/* WhatsApp-style Polls */
+.feed-poll {
+  margin-bottom: 16px;
+}
+
+.poll-option-whatsapp {
+  position: relative;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--card-bg);
+}
+
+.poll-option-whatsapp:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.poll-option-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.poll-option-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.poll-percentage {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.poll-percentage-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--accent-soft);
+  border-radius: 12px;
+  z-index: 1;
+  transition: var(--transition);
+}
+
+.poll-total-votes {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.7;
+  margin-top: 8px;
+}
+
+/* Feed Actions */
+.feed-post-actions {
+  display: flex;
+  gap: 20px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.feed-action-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feed-action-icon {
+  font-size: 18px;
+  transition: var(--transition);
+}
+
+.feed-action-icon.liked {
+  color: #ef4444;
+}
+
+.feed-action-text {
+  font-size: 14px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.feed-action-item:hover .feed-action-text {
+  opacity: 1;
+}
+
+.feed-post-controls {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.feed-control-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feed-control-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.feed-control-btn.delete {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
+}
+
+/* Comments Section */
+.feed-comments {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.feed-comment {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-author {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.feed-comment-form {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.comment-input-form {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* Kasuchat Styles */
+.kasuchat-section {
+  margin-bottom: 20px;
+}
+
+.kasuchat-users {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.kasuchat-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 8px;
+}
+
+.kasuchat-user:hover {
+  background: var(--accent-soft);
+}
+
+.kasuchat-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.kasuchat-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.kasuchat-online {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #3b82f6;
+  border: 2px solid var(--card-bg);
+  border-radius: 50%;
+}
+
+.kasuchat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.kasuchat-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.kasuchat-status {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.kasuchat-room {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.kasuchat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.kasuchat-header span {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.kasuchat-header button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.kasuchat-messages {
+  height: 200px;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.kasuchat-input {
+  display: flex;
+  gap: 8px;
+}
+
+.kasuchat-input input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.kasuchat-input button {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.kasuchat-input button:hover {
+  background: var(--accent-hover);
+}

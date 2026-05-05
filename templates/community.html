@@ -10,9 +10,6 @@
     <a class="button-link {{ 'button-secondary' if active_tab != 'posting' else '' }}" href="{{ url_for('community', tab='posting') }}">
       <span class="nav-icon">📝</span> Posting
     </a>
-    <a class="button-link {{ 'button-secondary' if active_tab != 'live_chat' else '' }}" href="{{ url_for('community', tab='live_chat') }}">
-      <span class="nav-icon">💬</span> Live Chat
-    </a>
     {% if current_user.department_id %}
     <a class="button-link {{ 'button-secondary' if active_tab != 'department' else '' }}" href="{{ url_for('community', tab='department') }}">
       <span class="nav-icon">🏫</span> {{ current_user.department_name }}
@@ -27,92 +24,129 @@
 {% block content %}
 <section class="dashboard-board community-board">
   <div class="dashboard-main">
-    <!-- Posting Tab Content -->
-    {% if active_tab == 'posting' %}
+    <!-- Active Students Display -->
+    <div class="active-students-section">
+      <div class="active-students-header">
+        <h4>Active Students</h4>
+        <span class="see-all-link">See all</span>
+      </div>
+      <div class="active-students-grid">
+        {% for user in active_students[:8] %}
+        <div class="active-student-card">
+          <div class="active-student-avatar">
+            <img src="{{ profile_image_url(user.profile_photo) }}" alt="{{ user.full_name }}">
+            <div class="active-indicator"></div>
+          </div>
+          <span class="active-student-name">{{ user.full_name.split(' ')[0] }}</span>
+        </div>
+        {% endfor %}
+        {% if active_students|length > 8 %}
+        <div class="active-student-card more-students">
+          <div class="more-count">+{{ active_students|length - 8 }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Community Feed -->
     <section class="community-feed">
       {% for post in posts %}
-      <article class="community-card">
-        <div class="community-head">
-          <div>
-            <span class="pill">{{ post.post_type|title }}</span>
-            <span class="pill pill-soft">{{ post.department_name }}</span>
-            {% if post.attachment_path %}
-            <span class="pill pill-info">📎 Attachment</span>
-            {% endif %}
-          </div>
-          <div class="post-meta">
-            <small>{{ post.created_at }}</small>
-            {% if post.author_id == current_user.id %}
-            <div class="post-actions">
-              <button class="button-small" onclick="editPost('{{ post.id }}')">Edit</button>
-              <form method="post" action="{{ url_for('delete_post', post_id=post.id) }}" style="display: inline;">
-                <button type="submit" class="button-small button-danger" onclick="return confirm('Delete this post?')">Delete</button>
-              </form>
+      <article class="feed-post">
+        <!-- Post Header -->
+        <div class="feed-post-header">
+          <div class="feed-post-user">
+            <img src="{{ profile_image_url(post.author_profile_photo) }}" alt="{{ post.author_name }}" class="feed-user-avatar">
+            <div class="feed-user-info">
+              <div class="feed-user-name">{{ post.author_name }}</div>
+              <div class="feed-user-username">@{{ post.author_username or post.author_name.lower().replace(' ', '_') }}</div>
             </div>
-            {% endif %}
           </div>
+          <div class="feed-post-time">{{ post.created_at }}</div>
         </div>
-        <h3>{{ post.title }}</h3>
-        <p>{{ post.body }}</p>
-        {% if post.attachment_path %}
-        <div class="attachment-block">
-          <a href="{{ media_url(post.attachment_path) }}" class="attachment-link" download>
-            <span class="file-icon">📄</span>
-            <span>{{ post.attachment_name }}</span>
-            <button class="button-small">Download</button>
-          </a>
-        </div>
-        {% endif %}
-        <p class="muted-line">By {{ post.author_name }}</p>
 
-        {% if post.post_type == 'poll' %}
-        <div class="poll-block">
-          {% for option in post.poll_options %}
-          <div class="poll-option">
-            <div class="status-row">
-              <strong>{{ option.option_text }}</strong>
-              <span>{{ option.vote_count }} vote{{ '' if option.vote_count == 1 else 's' }}</span>
-            </div>
-            {% if current_user.role == 'student' %}
-            <form method="post" action="{{ url_for('vote_poll', post_id=post.id) }}">
-              <input type="hidden" name="option_id" value="{{ option.id }}">
-              <button type="submit" {% if post.user_vote_id %}disabled{% endif %}>
-                {% if post.user_vote_id == option.id %}Voted{% elif post.user_vote_id %}Vote closed{% else %}Vote{% endif %}
-              </button>
-            </form>
-            {% endif %}
-          </div>
-          {% endfor %}
-          <p class="muted-line">Total votes: {{ post.poll_total_votes }}</p>
-        </div>
-        {% endif %}
-
-        <div class="community-actions">
-          {% if current_user.role == 'student' %}
-          <form method="post" action="{{ url_for('toggle_like', post_id=post.id) }}">
-            <button type="submit">{{ 'Unlike' if post.liked_by_user else 'Like' }} ({{ post.likes_count }})</button>
-          </form>
-          {% else %}
-          <span class="pill pill-soft">Likes: {{ post.likes_count }}</span>
+        <!-- Post Content -->
+        <div class="feed-post-content">
+          {% if post.title %}
+          <h3 class="feed-post-title">{{ post.title }}</h3>
           {% endif %}
-          <span class="pill pill-soft">Comments: {{ post.comments_count }}</span>
+          <div class="feed-post-body">{{ post.body }}</div>
+          
+          {% if post.attachment_path %}
+          <div class="feed-attachment">
+            <a href="{{ media_url(post.attachment_path) }}" class="feed-attachment-link" download>
+              <span class="file-icon">📄</span>
+              <span>{{ post.attachment_name }}</span>
+            </a>
+          </div>
+          {% endif %}
         </div>
 
-        <div class="comment-list">
-          {% for comment in post.comments %}
-          <div class="comment-item">
-            <strong>{{ comment.author_name }}</strong>
-            <p>{{ comment.body }}</p>
+        <!-- Poll Content -->
+        {% if post.post_type == 'poll' %}
+        <div class="feed-poll">
+          {% for option in post.poll_options %}
+          <div class="poll-option-whatsapp" onclick="votePoll('{{ post.id }}', '{{ option.id }}', this)">
+            <div class="poll-option-content">
+              <span class="poll-option-text">{{ option.option_text }}</span>
+              {% if post.poll_total_votes > 0 %}
+              <span class="poll-percentage">{{ (option.vote_count / post.poll_total_votes * 100)|round(1) }}%</span>
+              {% endif %}
+            </div>
+            {% if post.poll_total_votes > 0 %}
+            <div class="poll-percentage-bar" style="width: {{ (option.vote_count / post.poll_total_votes * 100)|round(1) }}%"></div>
+            {% endif %}
           </div>
           {% endfor %}
+          <div class="poll-total-votes">{{ post.poll_total_votes }} votes</div>
+        </div>
+        {% endif %}
+
+        <!-- Post Actions -->
+        <div class="feed-post-actions">
+          <div class="feed-action-item" onclick="toggleLike('{{ post.id }}', this)">
+            <span class="feed-action-icon {{ 'liked' if post.liked_by_user else '' }}">❤️</span>
+            <span class="feed-action-text">{{ post.likes_count }}</span>
+          </div>
+          <div class="feed-action-item" onclick="toggleComments('{{ post.id }}', this)">
+            <span class="feed-action-icon">💬</span>
+            <span class="feed-action-text">{{ post.comments_count }}</span>
+          </div>
+          <div class="feed-action-item" onclick="toggleBookmark('{{ post.id }}', this)">
+            <span class="feed-action-icon">🔖</span>
+          </div>
+          
+          {% if post.author_id == current_user.id %}
+          <div class="feed-post-controls">
+            <button class="feed-control-btn" onclick="editPost('{{ post.id }}')">Edit</button>
+            <form method="post" action="{{ url_for('delete_post', post_id=post.id) }}" style="display: inline;">
+              <button type="submit" class="feed-control-btn delete" onclick="return confirm('Delete this post?')">Delete</button>
+            </form>
+          </div>
+          {% endif %}
         </div>
 
-        {% if current_user.role == 'student' %}
-        <form method="post" action="{{ url_for('add_comment', post_id=post.id) }}" class="inline-comment-form">
-          <textarea name="body" rows="2" placeholder="Add a comment"></textarea>
-          <button type="submit">Comment</button>
-        </form>
-        {% endif %}
+        <!-- Comments Section -->
+        <div class="feed-comments" id="comments-{{ post.id }}" style="display: none;">
+          {% for comment in post.comments %}
+          <div class="feed-comment">
+            <img src="{{ profile_image_url(comment.author_profile_photo) }}" alt="{{ comment.author_name }}" class="comment-avatar">
+            <div class="comment-content">
+              <div class="comment-author">{{ comment.author_name }}</div>
+              <div class="comment-text">{{ comment.body }}</div>
+            </div>
+          </div>
+          {% endfor %}
+          
+          {% if current_user.role == 'student' %}
+          <div class="feed-comment-form">
+            <img src="{{ profile_image_url(current_user.profile_photo) }}" alt="{{ current_user.full_name }}" class="comment-avatar">
+            <form method="post" action="{{ url_for('add_comment', post_id=post.id) }}" class="comment-input-form">
+              <input type="text" name="body" placeholder="Add a comment..." class="comment-input">
+              <button type="submit">Post</button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
       </article>
       {% else %}
       <div class="section-card">
@@ -120,85 +154,6 @@
       </div>
       {% endfor %}
     </section>
-
-    <!-- Live Chat Tab Content -->
-    {% elif active_tab == 'live_chat' %}
-    <section class="live-chat-section">
-      <div class="chat-container">
-        <div class="online-users">
-          <h4>Online Students</h4>
-          <div class="users-grid">
-            {% for user in online_users %}
-            <div class="user-avatar" onclick="openChatRoom('{{ user.id }}', '{{ user.full_name }}')">
-              <div class="avatar-wrapper">
-                <img src="{{ profile_image_url(user.profile_photo) }}" alt="{{ user.full_name }}" class="user-avatar-img">
-                <div class="online-indicator"></div>
-              </div>
-              <span class="user-name">{{ user.full_name }}</span>
-              <span class="user-dept">{{ user.department_name }}</span>
-            </div>
-            {% else %}
-            <p class="empty-state">No students are currently online.</p>
-            {% endfor %}
-          </div>
-        </div>
-        
-        <div class="chat-room" id="chatRoom" style="display: none;">
-          <div class="chat-header">
-            <h4 id="chatRoomName">Chat Room</h4>
-            <button onclick="closeChatRoom()">✕</button>
-          </div>
-          <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be loaded here -->
-          </div>
-          <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Type a message...">
-            <button onclick="sendMessage()">Send</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Department/All Departments Tab Content -->
-    {% else %}
-    <section class="community-feed">
-      {% for post in filtered_posts %}
-      <article class="community-card">
-        <div class="community-head">
-          <div>
-            <span class="pill">{{ post.post_type|title }}</span>
-            <span class="pill pill-soft">{{ post.department_name }}</span>
-            {% if post.attachment_path %}
-            <span class="pill pill-info">📎 Attachment</span>
-            {% endif %}
-          </div>
-          <small>{{ post.created_at }}</small>
-        </div>
-        <h3>{{ post.title }}</h3>
-        <p>{{ post.body }}</p>
-        {% if post.attachment_path %}
-        <div class="attachment-block">
-          <a href="{{ media_url(post.attachment_path) }}" class="attachment-link" download>
-            <span class="file-icon">📄</span>
-            <span>{{ post.attachment_name }}</span>
-            <button class="button-small">Download</button>
-          </a>
-        </div>
-        {% endif %}
-        <p class="muted-line">By {{ post.author_name }}</p>
-        
-        <div class="community-actions">
-          <span class="pill pill-soft">Likes: {{ post.likes_count }}</span>
-          <span class="pill pill-soft">Comments: {{ post.comments_count }}</span>
-        </div>
-      </article>
-      {% else %}
-      <div class="section-card">
-        <p class="empty-state">No posts available in this section.</p>
-      </div>
-      {% endfor %}
-    </section>
-    {% endif %}
   </div>
 
   <aside class="dashboard-side">
@@ -246,6 +201,48 @@
         </label>
         <button type="submit">Post to Community</button>
       </form>
+    </section>
+
+    <!-- Kasuchat Section -->
+    <section class="section-card kasuchat-section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Kasuchat</p>
+          <h3>Student chat</h3>
+        </div>
+      </div>
+      <div class="kasuchat-content">
+        <div class="kasuchat-users">
+          {% for user in online_users %}
+          <div class="kasuchat-user" onclick="openKasuChat('{{ user.id }}', '{{ user.full_name }}')">
+            <div class="kasuchat-avatar">
+              <img src="{{ profile_image_url(user.profile_photo) }}" alt="{{ user.full_name }}">
+              <div class="kasuchat-online"></div>
+            </div>
+            <div class="kasuchat-info">
+              <span class="kasuchat-name">{{ user.full_name }}</span>
+              <span class="kasuchat-status">Online</span>
+            </div>
+          </div>
+          {% else %}
+          <p class="empty-state">No students online</p>
+          {% endfor %}
+        </div>
+        
+        <div class="kasuchat-room" id="kasuchatRoom" style="display: none;">
+          <div class="kasuchat-header">
+            <span id="kasuchatRoomName">Chat Room</span>
+            <button onclick="closeKasuChat()">✕</button>
+          </div>
+          <div class="kasuchat-messages" id="kasuchatMessages">
+            <!-- Messages will appear here -->
+          </div>
+          <div class="kasuchat-input">
+            <input type="text" id="kasuchatMessageInput" placeholder="Type a message...">
+            <button onclick="sendKasuMessage()">Send</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Quick Actions -->
@@ -368,53 +365,110 @@ function editPost(postId) {
   alert(`Edit post ${postId} - Feature would open edit form`);
 }
 
-function openChatRoom(userId, userName) {
-  const chatRoom = document.getElementById("chatRoom");
-  const chatRoomName = document.getElementById("chatRoomName");
-  const chatMessages = document.getElementById("chatMessages");
+function votePoll(postId, optionId, element) {
+  // Simulate voting - in real app this would make an API call
+  const pollOptions = element.parentElement.querySelectorAll('.poll-option-whatsapp');
+  pollOptions.forEach(option => {
+    option.style.background = 'var(--accent-soft)';
+    option.style.borderColor = 'var(--accent)';
+  });
+  
+  element.style.background = 'var(--accent)';
+  element.style.borderColor = 'var(--accent)';
+  
+  // Show feedback
+  alert(`Voted for option ${optionId} in post ${postId}`);
+}
+
+function toggleLike(postId, element) {
+  const icon = element.querySelector('.feed-action-icon');
+  const text = element.querySelector('.feed-action-text');
+  
+  if (icon.classList.contains('liked')) {
+    icon.classList.remove('liked');
+    text.textContent = parseInt(text.textContent) - 1;
+  } else {
+    icon.classList.add('liked');
+    text.textContent = parseInt(text.textContent) + 1;
+  }
+  
+  // In real app, this would make an API call
+}
+
+function toggleComments(postId, element) {
+  const commentsSection = document.getElementById(`comments-${postId}`);
+  
+  if (commentsSection.style.display === 'none') {
+    commentsSection.style.display = 'block';
+    element.querySelector('.feed-action-icon').style.color = 'var(--accent)';
+  } else {
+    commentsSection.style.display = 'none';
+    element.querySelector('.feed-action-icon').style.color = '';
+  }
+}
+
+function toggleBookmark(postId, element) {
+  const icon = element.querySelector('.feed-action-icon');
+  
+  if (icon.textContent === '🔖') {
+    icon.textContent = '🔒';
+    icon.style.color = 'var(--accent)';
+  } else {
+    icon.textContent = '🔖';
+    icon.style.color = '';
+  }
+  
+  // In real app, this would make an API call
+}
+
+// Kasuchat functions
+function openKasuChat(userId, userName) {
+  const chatRoom = document.getElementById("kasuchatRoom");
+  const chatRoomName = document.getElementById("kasuchatRoomName");
+  const chatMessages = document.getElementById("kasuchatMessages");
   
   if (chatRoom && chatRoomName && chatMessages) {
     chatRoomName.textContent = `Chat with ${userName}`;
-    chatRoom.style.display = "flex";
+    chatRoom.style.display = "block";
     
     // Clear previous messages and add a welcome message
     chatMessages.innerHTML = `
-      <div class="chat-message">
-        <div class="chat-bubble">Welcome to the chat with ${userName}!</div>
+      <div class="kasuchat-message">
+        <div class="kasuchat-bubble">Welcome to Kasuchat with ${userName}!</div>
       </div>
     `;
   }
 }
 
-function closeChatRoom() {
-  const chatRoom = document.getElementById("chatRoom");
+function closeKasuChat() {
+  const chatRoom = document.getElementById("kasuchatRoom");
   if (chatRoom) {
     chatRoom.style.display = "none";
   }
 }
 
-function sendMessage() {
-  const messageInput = document.getElementById("messageInput");
-  const chatMessages = document.getElementById("chatMessages");
+function sendKasuMessage() {
+  const messageInput = document.getElementById("kasuchatMessageInput");
+  const chatMessages = document.getElementById("kasuchatMessages");
   
   if (messageInput && chatMessages && messageInput.value.trim()) {
     const messageText = messageInput.value.trim();
     
     // Add message to chat
     const messageDiv = document.createElement("div");
-    messageDiv.className = "chat-message own";
-    messageDiv.innerHTML = `<div class="chat-bubble">${messageText}</div>`;
+    messageDiv.className = "kasuchat-message own";
+    messageDiv.innerHTML = `<div class="kasuchat-bubble">${messageText}</div>`;
     chatMessages.appendChild(messageDiv);
     
     // Clear input and scroll to bottom
     messageInput.value = "";
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
-    // Simulate response (in real app, this would be handled by WebSocket/Server)
+    // Simulate response
     setTimeout(() => {
       const responseDiv = document.createElement("div");
-      responseDiv.className = "chat-message";
-      responseDiv.innerHTML = `<div class="chat-bubble">Thanks for your message! This is a demo response.</div>`;
+      responseDiv.className = "kasuchat-message";
+      responseDiv.innerHTML = `<div class="kasuchat-bubble">Thanks for your message! This is a demo response.</div>`;
       chatMessages.appendChild(responseDiv);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 1000);
@@ -426,13 +480,23 @@ function refreshFeed() {
   window.location.reload();
 }
 
-// Handle Enter key in chat input
+// Handle Enter key in chat inputs
 document.addEventListener("DOMContentLoaded", () => {
   const messageInput = document.getElementById("messageInput");
+  const kasuchatMessageInput = document.getElementById("kasuchatMessageInput");
+  
   if (messageInput) {
     messageInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         sendMessage();
+      }
+    });
+  }
+  
+  if (kasuchatMessageInput) {
+    kasuchatMessageInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendKasuMessage();
       }
     });
   }
