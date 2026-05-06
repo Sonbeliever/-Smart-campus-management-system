@@ -3819,3 +3819,22 @@ tbody td {
   background: var(--error-soft);
   color: var(--error);
 }
+
+/* Eligibility Chart Styles */
+.metric-card-chart {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.eligibility-chart-container {
+  width: 100%;
+  height: 100px;
+  position: relative;
+  margin-top: 8px;
+}
+
+.eligibility-chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}

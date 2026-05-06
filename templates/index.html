@@ -29,10 +29,16 @@
     <strong>{{ dashboard.performance.overall_percent }}%</strong>
     <small>Across your tracked courses</small>
   </article>
-  <article class="metric-card">
+  <article class="metric-card metric-card-chart">
     <span>Eligible Courses</span>
     <strong>{{ dashboard.performance.eligible_courses }}</strong>
     <small>Courses at or above 70%</small>
+    <div class="eligibility-chart-container">
+      <canvas id="eligibilityChart" 
+              data-courses="{{ dashboard.performance.courses | map(attribute='code') | join(',') }}"
+              data-attendance="{{ dashboard.performance.courses | map(attribute='attendance_percent') | join(',') }}"
+              width="200" height="100"></canvas>
+    </div>
   </article>
 </section>
 
@@ -436,61 +442,124 @@
 {% if current_user.role == 'student' %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+  // Attendance Chart
   const ctx = document.getElementById('attendanceChart');
-  if (!ctx) return;
-  
-  const coursesData = ctx.getAttribute('data-courses');
-  const attendanceData = ctx.getAttribute('data-attendance');
-  
-  if (!coursesData || !attendanceData) return;
-  
-  const courses = coursesData.split(',');
-  const attendanceValues = attendanceData.split(',').map(Number);
-  
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: courses,
-      datasets: [{
-        label: 'Attendance %',
-        data: attendanceValues,
-        backgroundColor: attendanceValues.map(value => 
-          value >= 70 ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.7)'
-        ),
-        borderColor: attendanceValues.map(value => 
-          value >= 70 ? 'rgba(34, 197, 94, 1)' : 'rgba(239, 68, 68, 1)'
-        ),
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          ticks: {
-            callback: function(value) {
-              return value + '%';
-            }
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          display: false
+  if (ctx) {
+    const coursesData = ctx.getAttribute('data-courses');
+    const attendanceData = ctx.getAttribute('data-attendance');
+    
+    if (coursesData && attendanceData) {
+      const courses = coursesData.split(',');
+      const attendanceValues = attendanceData.split(',').map(Number);
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: courses,
+          datasets: [{
+            label: 'Attendance %',
+            data: attendanceValues,
+            backgroundColor: attendanceValues.map(value => 
+              value >= 70 ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.7)'
+            ),
+            borderColor: attendanceValues.map(value => 
+              value >= 70 ? 'rgba(34, 197, 94, 1)' : 'rgba(239, 68, 68, 1)'
+            ),
+            borderWidth: 1
+          }]
         },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return context.parsed.y + '% attendance';
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.parsed.y + '% attendance';
+                }
+              }
             }
           }
         }
-      }
+      });
     }
-  });
+  }
+
+  // Eligibility Chart
+  const eligibilityCtx = document.getElementById('eligibilityChart');
+  if (eligibilityCtx) {
+    const coursesData = eligibilityCtx.getAttribute('data-courses');
+    const attendanceData = eligibilityCtx.getAttribute('data-attendance');
+    
+    if (coursesData && attendanceData) {
+      const courses = coursesData.split(',');
+      const attendanceValues = attendanceData.split(',').map(Number);
+      
+      new Chart(eligibilityCtx, {
+        type: 'bar',
+        data: {
+          labels: courses,
+          datasets: [{
+            label: 'Eligibility',
+            data: attendanceValues,
+            backgroundColor: attendanceValues.map(value => 
+              value >= 70 ? 'rgba(59, 130, 246, 0.7)' : 'rgba(239, 68, 68, 0.7)'
+            ),
+            borderColor: attendanceValues.map(value => 
+              value >= 70 ? 'rgba(59, 130, 246, 1)' : 'rgba(239, 68, 68, 1)'
+            ),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              display: false
+            },
+            x: {
+              ticks: {
+                font: {
+                  size: 10
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.parsed.y;
+                  const status = value >= 70 ? 'Eligible' : 'Not Eligible';
+                  return `${value}% - ${status}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  }
 });
 </script>
 {% endif %}
