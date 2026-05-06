@@ -572,4 +572,138 @@
   </aside>
 </section>
 {% endif %}
+
+{% if current_user.role == 'student' %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const ctx = document.getElementById('attendanceChart');
+  if (!ctx) return;
+  
+  const coursesData = ctx.getAttribute('data-courses');
+  const attendanceData = ctx.getAttribute('data-attendance');
+  
+  if (!coursesData || !attendanceData) return;
+  
+  const courses = coursesData.split(',');
+  const attendanceValues = attendanceData.split(',').map(Number);
+  
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: courses,
+      datasets: [{
+        label: 'Attendance %',
+        data: attendanceValues,
+        backgroundColor: attendanceValues.map(value => 
+          value >= 70 ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.7)'
+        ),
+        borderColor: attendanceValues.map(value => 
+          value >= 70 ? 'rgba(34, 197, 94, 1)' : 'rgba(239, 68, 68, 1)'
+        ),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.parsed.y + '% attendance';
+            }
+          }
+        }
+      }
+    }
+  });
+});
+</script>
+{% endif %}
+
+{% if current_user.role in ['super_admin', 'department_admin'] %}
+<script>
+function searchStudent() {
+  const searchInput = document.getElementById('studentSearchInput');
+  const resultsDiv = document.getElementById('studentSearchResults');
+  const searchTerm = searchInput.value.trim();
+  
+  if (!searchTerm) {
+    resultsDiv.innerHTML = '<p class="empty-state">Please enter a search term.</p>';
+    return;
+  }
+  
+  resultsDiv.innerHTML = '<p class="empty-state">Searching...</p>';
+  
+  fetch(`/api/search-student?q=${encodeURIComponent(searchTerm)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.students && data.students.length > 0) {
+        resultsDiv.innerHTML = data.students.map(student => `
+          <div class="student-result-card">
+            <div class="student-result-header">
+              <div>
+                <div class="student-result-name">${student.full_name}</div>
+                <div class="student-result-matric">${student.matric_number}</div>
+              </div>
+              <div class="eligibility-status ${student.eligible ? 'eligible' : 'not-eligible'}">
+                ${student.eligible ? 'Eligible (≥70%)' : 'Not Eligible (<70%)'}
+              </div>
+            </div>
+            <div class="student-result-details">
+              <div class="detail-item">
+                <span>Overall Attendance</span>
+                <strong>${student.overall_attendance}%</strong>
+              </div>
+              <div class="detail-item">
+                <span>Eligible Courses</span>
+                <strong>${student.eligible_courses}/${student.total_courses}</strong>
+              </div>
+              <div class="detail-item">
+                <span>Department</span>
+                <strong>${student.department}</strong>
+              </div>
+              <div class="detail-item">
+                <span>Programme</span>
+                <strong>${student.programme || 'N/A'}</strong>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        resultsDiv.innerHTML = '<p class="empty-state">No students found matching your search.</p>';
+      }
+    })
+    .catch(error => {
+      resultsDiv.innerHTML = '<p class="empty-state">Error searching for students. Please try again.</p>';
+      console.error('Search error:', error);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById('studentSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        searchStudent();
+      }
+    });
+  }
+});
+</script>
+{% endif %}
 {% endblock %}
