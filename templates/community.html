@@ -24,30 +24,6 @@
 {% block content %}
 <section class="dashboard-board community-board">
   <div class="dashboard-main">
-    <!-- Active Students Display -->
-    <div class="active-students-section">
-      <div class="active-students-header">
-        <h4>Active Students</h4>
-        <span class="see-all-link">See all</span>
-      </div>
-      <div class="active-students-grid">
-        {% for user in active_students[:8] %}
-        <div class="active-student-card">
-          <div class="active-student-avatar">
-            <img src="{{ profile_image_url(user.profile_photo) }}" alt="{{ user.full_name }}">
-            <div class="active-indicator"></div>
-          </div>
-          <span class="active-student-name">{{ user.full_name.split(' ')[0] }}</span>
-        </div>
-        {% endfor %}
-        {% if active_students|length > 8 %}
-        <div class="active-student-card more-students">
-          <div class="more-count">+{{ active_students|length - 8 }}</div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
     <!-- Community Feed -->
     <section class="community-feed">
       {% for post in posts %}
