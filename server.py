@@ -2120,10 +2120,11 @@ def create_course():
         
         if existing:
             flash(f"Course code '{code}' already exists in the selected department.", "error")
+            conn.close()
             return redirect(url_for("home"))
         
         # Insert the new course
-        conn.execute(
+        cursor = conn.execute(
             """
             INSERT INTO courses (department_id, code, title, semester, created_by, created_at)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -2131,15 +2132,19 @@ def create_course():
             (department_id, code, title, semester, user["id"], now_iso()),
         )
         conn.commit()
-        flash("Course created successfully.", "success")
+        course_id = cursor.lastrowid
+        flash(f"Course '{code}' created successfully.", "success")
+        print(f"Course created: ID={course_id}, Code={code}, Department={department_id}")
     except sqlite3.IntegrityError as e:
         conn.rollback()
-        flash("An error occurred while creating the course. Please try again.", "error")
+        flash(f"Database constraint error: {str(e)}", "error")
         print(f"IntegrityError in create_course: {e}")
+        print(f"Attempted: department_id={department_id}, code={code}, title={title}")
     except Exception as e:
         conn.rollback()
-        flash("An unexpected error occurred. Please try again.", "error")
+        flash(f"Error creating course: {str(e)}", "error")
         print(f"Error in create_course: {e}")
+        print(f"Attempted: department_id={department_id}, code={code}, title={title}")
     finally:
         conn.close()
     return redirect(url_for("home"))
