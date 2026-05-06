@@ -2883,19 +2883,26 @@ def print_id_card(student_id: int):
 @app.route("/community")
 @login_required
 def community():
-    user = current_user()
-    view_mode = normalize_text(request.args.get("view", "all")) or "all"
-    tab = normalize_text(request.args.get("tab", "posting")) or "posting"
-    posts = fetch_community_posts(user, view_mode=view_mode)
-    flagged_items = get_flagged_content(user) if user["role"] in {"super_admin", "department_admin"} else []
-    return render_template(
-        "community.html",
-        posts=posts,
-        view_mode=view_mode,
-        active_tab=tab,
-        departments=get_accessible_departments_for_user(user),
-        flagged_items=flagged_items,
-    )
+    try:
+        user = current_user()
+        view_mode = normalize_text(request.args.get("view", "all")) or "all"
+        tab = normalize_text(request.args.get("tab", "posting")) or "posting"
+        posts = fetch_community_posts(user, view_mode=view_mode)
+        flagged_items = get_flagged_content(user) if user["role"] in {"super_admin", "department_admin"} else []
+        return render_template(
+            "community.html",
+            posts=posts,
+            view_mode=view_mode,
+            active_tab=tab,
+            departments=get_accessible_departments_for_user(user),
+            flagged_items=flagged_items,
+        )
+    except Exception as e:
+        print(f"Error in community route: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f"Error loading community: {str(e)}", "error")
+        return redirect(url_for("home"))
 
 
 @app.route("/community/post", methods=["POST"])
