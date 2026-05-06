@@ -2967,6 +2967,66 @@ tbody td {
     color: var(--accent);
   }
 
+  /* Scan/Attendance page mobile styles */
+  .process-strip {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .process-step {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .process-step strong {
+    font-size: 14px;
+  }
+
+  .process-step p {
+    font-size: 12px;
+  }
+
+  .scanner-panel {
+    padding: 14px;
+  }
+
+  .scanner-box {
+    min-height: 200px;
+    border-radius: 16px;
+  }
+
+  .result-box {
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  .status-panel {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .status-panel strong {
+    font-size: 14px;
+  }
+
+  .status-panel p {
+    font-size: 12px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .table-wrap table {
+    font-size: 12px;
+  }
+
+  .table-wrap th,
+  .table-wrap td {
+    padding: 8px 6px;
+  }
+
   .workspace-shell {
     padding-bottom: 96px;
   }
