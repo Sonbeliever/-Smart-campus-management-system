@@ -2857,12 +2857,104 @@ tbody td {
     font-weight: 800;
     letter-spacing: 0.01em;
     color: var(--text);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small phones - reduce padding further */
+  .dashboard-shell,
+  .auth-shell {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .sidebar-shell,
+  .section-card,
+  .metric-card,
+  .auth-panel,
+  .community-card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .hero-card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  /* Reduce font sizes for very small screens */
+  body {
+    font-size: 13px;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+  }
+
+  h4 {
+    font-size: 0.95rem;
+  }
+
+  /* Reduce button sizes */
+  .button-link,
+  button {
+    padding: 8px 10px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
+  /* Reduce input padding */
+  input,
+  select,
+  textarea {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* Reduce sidebar width on mobile */
+  .sidebar-shell {
+    width: calc(100vw - 24px);
+    left: 12px;
+    right: 12px;
+  }
+
+  /* Reduce metric grid gaps */
+  .metric-grid {
+    gap: 10px;
+  }
+
+  /* Reduce section card gaps */
+  .dashboard-board {
+    gap: 12px;
+  }
+
+  /* Adjust mobile nav for very small screens */
+  .mobile-nav {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .mobile-nav-link {
+    padding: 8px 6px;
+    font-size: 11px;
+    gap: 4px;
     border: 1px solid transparent;
     background: transparent;
   }
 
   .mobile-nav-link span {
-    font-size: 0.72rem;
+    font-size: 16px;
   }
 
   .mobile-nav-link.is-active {
