@@ -2112,6 +2112,17 @@ def create_course():
     require_department_access(user, department_id)
     conn = get_conn()
     try:
+        # Check if course code already exists in the department
+        existing = conn.execute(
+            "SELECT id FROM courses WHERE department_id = ? AND code = ?",
+            (department_id, code)
+        ).fetchone()
+        
+        if existing:
+            flash(f"Course code '{code}' already exists in the selected department.", "error")
+            return redirect(url_for("home"))
+        
+        # Insert the new course
         conn.execute(
             """
             INSERT INTO courses (department_id, code, title, semester, created_by, created_at)
@@ -2120,9 +2131,15 @@ def create_course():
             (department_id, code, title, semester, user["id"], now_iso()),
         )
         conn.commit()
-        flash("Course created.", "success")
-    except sqlite3.IntegrityError:
-        flash("That course code already exists in the selected department.", "error")
+        flash("Course created successfully.", "success")
+    except sqlite3.IntegrityError as e:
+        conn.rollback()
+        flash("An error occurred while creating the course. Please try again.", "error")
+        print(f"IntegrityError in create_course: {e}")
+    except Exception as e:
+        conn.rollback()
+        flash("An unexpected error occurred. Please try again.", "error")
+        print(f"Error in create_course: {e}")
     finally:
         conn.close()
     return redirect(url_for("home"))
