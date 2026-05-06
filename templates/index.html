@@ -135,55 +135,6 @@
 
   <!-- Sidebar -->
   <aside class="dashboard-side">
-    <!-- Identity Management Section -->
-    <article class="section-card">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Identity Management</p>
-          <h3>Student ID & QR</h3>
-        </div>
-      </div>
-      <div class="quick-stat-list">
-        <div class="quick-stat">
-          <span>ID Card</span>
-          <strong>{{ 'Issued' if dashboard.student.id_card_generated_at else 'Generate' }}</strong>
-        </div>
-        <div class="quick-stat">
-          <span>QR Code</span>
-          <strong>{% if dashboard.student.qr_path %}Active{% else %}Pending{% endif %}</strong>
-        </div>
-        <div class="quick-stat">
-          <span>Reprints</span>
-          <strong>{{ dashboard.student.id_card_reprint_count }}</strong>
-        </div>
-      </div>
-      <div class="action-row">
-        <a class="button-link" href="{{ url_for('id_card') }}">Manage ID Card</a>
-      </div>
-    </article>
-
-    <!-- Community & Resources Section -->
-    <article class="section-card">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Community</p>
-          <h3>Student resources</h3>
-        </div>
-      </div>
-      <div class="mini-card-list">
-        <div class="mini-card">
-          <strong>Community Hub</strong>
-          <span>Connect with fellow students and share resources.</span>
-        </div>
-        <div class="mini-card">
-          <strong>Academic Support</strong>
-          <span>Access course materials and study guides.</span>
-        </div>
-      </div>
-      <div class="action-row">
-        <a class="button-link" href="{{ url_for('community') }}">Open Community</a>
-      </div>
-    </article>
   </aside>
 </section>
 {% else %}
