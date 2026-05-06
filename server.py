@@ -2971,6 +2971,45 @@ def create_community_post():
     return redirect(url_for("community"))
 
 
+@app.route("/community/posts/<int:post_id>/delete", methods=["POST"])
+@roles_required("student")
+def delete_post(post_id: int):
+    user = current_user()
+    conn = get_conn()
+    post = conn.execute(
+        "SELECT author_id FROM community_posts WHERE id = ?",
+        (post_id,)
+    ).fetchone()
+    
+    if not post:
+        conn.close()
+        flash("Post not found.", "error")
+        return redirect(url_for("community"))
+    
+    if post["author_id"] != user["id"]:
+        conn.close()
+        flash("You can only delete your own posts.", "error")
+        return redirect(url_for("community"))
+    
+    try:
+        # Delete related data first (comments, likes, poll options, votes)
+        conn.execute("DELETE FROM community_comments WHERE post_id = ?", (post_id,))
+        conn.execute("DELETE FROM community_likes WHERE post_id = ?", (post_id,))
+        conn.execute("DELETE FROM community_poll_votes WHERE post_id = ?", (post_id,))
+        conn.execute("DELETE FROM community_poll_options WHERE post_id = ?", (post_id,))
+        # Delete the post
+        conn.execute("DELETE FROM community_posts WHERE id = ?", (post_id,))
+        conn.commit()
+        flash("Post deleted successfully.", "success")
+    except Exception as e:
+        conn.rollback()
+        flash("Error deleting post. Please try again.", "error")
+        print(f"Error deleting post: {e}")
+    finally:
+        conn.close()
+    return redirect(url_for("community"))
+
+
 @app.route("/community/posts/<int:post_id>/like", methods=["POST"])
 @roles_required("student")
 def toggle_like(post_id: int):
