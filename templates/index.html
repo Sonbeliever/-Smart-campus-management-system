@@ -23,7 +23,7 @@
 {% block content %}
 {% if current_user.role == 'student' %}
 <!-- Student Performance Metrics -->
-<section class="metric-grid metric-grid-4">
+<section class="metric-grid metric-grid-2">
   <article class="metric-card">
     <span>Overall Attendance</span>
     <strong>{{ dashboard.performance.overall_percent }}%</strong>
@@ -33,16 +33,6 @@
     <span>Eligible Courses</span>
     <strong>{{ dashboard.performance.eligible_courses }}</strong>
     <small>Courses at or above 70%</small>
-  </article>
-  <article class="metric-card">
-    <span>ID Card Status</span>
-    <strong>{{ 'Issued' if dashboard.student.id_card_generated_at else 'Pending' }}</strong>
-    <small>Digital identity card</small>
-  </article>
-  <article class="metric-card">
-    <span>QR Identity</span>
-    <strong>{% if dashboard.student.qr_path %}Ready{% else %}Pending{% endif %}</strong>
-    <small>Reusable for attendance</small>
   </article>
 </section>
 
