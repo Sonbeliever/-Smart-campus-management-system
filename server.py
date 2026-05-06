@@ -2123,14 +2123,27 @@ def create_course():
             conn.close()
             return redirect(url_for("home"))
         
+        # Check if course_name column exists (legacy column)
+        has_course_name = table_has_column(conn, "courses", "course_name")
+        
         # Insert the new course
-        cursor = conn.execute(
-            """
-            INSERT INTO courses (department_id, code, title, semester, created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (department_id, code, title, semester, user["id"], now_iso()),
-        )
+        if has_course_name:
+            cursor = conn.execute(
+                """
+                INSERT INTO courses (department_id, code, title, course_name, semester, created_by, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (department_id, code, title, title, semester, user["id"], now_iso()),
+            )
+        else:
+            cursor = conn.execute(
+                """
+                INSERT INTO courses (department_id, code, title, semester, created_by, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (department_id, code, title, semester, user["id"], now_iso()),
+            )
+        
         conn.commit()
         course_id = cursor.lastrowid
         flash(f"Course '{code}' created successfully.", "success")
