@@ -1545,6 +1545,11 @@ body.workspace-body .site-bg {
   z-index: -1;
 }
 
+.signup-page .site-bg {
+  background:
+    url('/static/signup-bg.jpg') center center / cover no-repeat;
+}
+
 .dashboard-shell {
   position: relative;
   z-index: 1;
