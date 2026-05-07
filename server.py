@@ -301,6 +301,7 @@ def apply_legacy_schema_migrations(conn: sqlite3.Connection) -> None:
     ensure_column(conn, "accounts", "id_card_generated_at", "TEXT")
     ensure_column(conn, "accounts", "id_card_reprint_count", "INTEGER NOT NULL DEFAULT 0")
     ensure_column(conn, "accounts", "is_active", "INTEGER NOT NULL DEFAULT 1")
+    ensure_column(conn, "accounts", "is_verified", "INTEGER NOT NULL DEFAULT 0")
     ensure_column(conn, "accounts", "created_at", "TEXT")
     ensure_column(conn, "accounts", "updated_at", "TEXT")
 
@@ -525,6 +526,15 @@ def initialize_db() -> None:
             ON attendance_records(department_id, student_id, marked_at);
         CREATE INDEX IF NOT EXISTS idx_posts_department_visibility
             ON community_posts(department_id, visibility, moderation_status, created_at);
+
+        CREATE TABLE IF NOT EXISTS email_verification (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            otp_hash TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES accounts(id)
+        );
         """
     )
     existing_super_admin = conn.execute(
@@ -1744,6 +1754,9 @@ def login():
         if not account["is_active"]:
             flash("This account has been deactivated. Please contact an administrator.", "error")
             return render_template("login.html")
+        if account["role"] == "student" and not account["is_verified"]:
+            flash("Please verify your email to activate your account.", "warning")
+            return redirect(url_for("verify_otp", user_id=account["id"]))
         login_user(account)
         return redirect(url_for("home"))
 
@@ -1807,9 +1820,9 @@ def register():
             """
             INSERT INTO accounts (
                 username, password, role, full_name, email, phone,
-                department_id, matric_number, profile_photo, created_at, updated_at
+                department_id, matric_number, profile_photo, is_verified, created_at, updated_at
             )
-            VALUES (?, ?, 'student', ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, 'student', ?, ?, ?, ?, ?, ?, 0, ?, ?)
             """,
             (
                 normalize_username(matric_number),
@@ -1826,13 +1839,139 @@ def register():
         )
         student_id = cursor.lastrowid
         conn.commit()
+        
+        # Generate OTP for email verification
+        import uuid
+        from datetime import timedelta
+        otp = f"{uuid.uuid4().int % 1000000:06d}"
+        otp_hash = generate_password_hash(otp)
+        expires_at = (now_iso_datetime() + timedelta(minutes=10)).isoformat()
+        
+        conn.execute(
+            """
+            INSERT INTO email_verification (user_id, otp_hash, expires_at, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (student_id, otp_hash, expires_at, now_iso()),
+        )
+        conn.commit()
         conn.close()
         ensure_student_qr(student_id)
-
-        flash("Registration successful. You can now log in with your matric number or email.", "success")
-        return redirect(url_for("login"))
+        
+        # Send email with OTP
+        from notifications import send_email
+        email_sent = send_email(
+            email,
+            "Verify your KASU Account",
+            f"Your verification code is {otp}. It expires in 10 minutes.",
+            enabled=True,
+        )
+        
+        if email_sent:
+            flash("Registration successful. Please check your email for the verification code.", "success")
+            return redirect(url_for("verify_otp", user_id=student_id))
+        else:
+            flash("Registration successful, but email verification could not be sent. Please contact support.", "warning")
+            return redirect(url_for("verify_otp", user_id=student_id))
 
     return render_template("register.html", departments=departments)
+
+
+@app.route("/verify-otp/<int:user_id>", methods=["GET", "POST"])
+def verify_otp(user_id):
+    conn = get_conn()
+    user = conn.execute("SELECT * FROM accounts WHERE id = ?", (user_id,)).fetchone()
+    
+    if not user:
+        conn.close()
+        flash("User not found.", "error")
+        return redirect(url_for("login"))
+    
+    if request.method == "POST":
+        otp = request.form.get("otp", "").strip()
+        otp_record = conn.execute(
+            "SELECT * FROM email_verification WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
+            (user_id,)
+        ).fetchone()
+        
+        if not otp_record:
+            conn.close()
+            flash("Verification code not found. Please try registering again.", "error")
+            return redirect(url_for("login"))
+        
+        from datetime import datetime
+        expires_at = datetime.fromisoformat(otp_record["expires_at"])
+        if datetime.now() > expires_at:
+            conn.close()
+            flash("Verification code has expired. Please request a new one.", "error")
+            return redirect(url_for("resend_otp", user_id=user_id))
+        
+        if not check_password_hash(otp_record["otp_hash"], otp):
+            conn.close()
+            flash("Invalid verification code.", "error")
+            return redirect(url_for("verify_otp", user_id=user_id))
+        
+        # Verify the user
+        conn.execute(
+            "UPDATE accounts SET is_verified = 1, updated_at = ? WHERE id = ?",
+            (now_iso(), user_id)
+        )
+        conn.execute("DELETE FROM email_verification WHERE user_id = ?", (user_id,))
+        conn.commit()
+        conn.close()
+        
+        flash("Account verified successfully. You can now log in.", "success")
+        return redirect(url_for("login"))
+    
+    conn.close()
+    return render_template("verify_otp.html", user=user)
+
+
+@app.route("/resend-otp/<int:user_id>", methods=["POST"])
+def resend_otp(user_id):
+    conn = get_conn()
+    user = conn.execute("SELECT * FROM accounts WHERE id = ?", (user_id,)).fetchone()
+    
+    if not user:
+        conn.close()
+        flash("User not found.", "error")
+        return redirect(url_for("login"))
+    
+    # Delete old OTP
+    conn.execute("DELETE FROM email_verification WHERE user_id = ?", (user_id,))
+    
+    # Generate new OTP
+    import uuid
+    from datetime import timedelta
+    otp = f"{uuid.uuid4().int % 1000000:06d}"
+    otp_hash = generate_password_hash(otp)
+    expires_at = (now_iso_datetime() + timedelta(minutes=10)).isoformat()
+    
+    conn.execute(
+        """
+        INSERT INTO email_verification (user_id, otp_hash, expires_at, created_at)
+        VALUES (?, ?, ?, ?)
+        """,
+        (user_id, otp_hash, expires_at, now_iso()),
+    )
+    conn.commit()
+    conn.close()
+    
+    # Send email with new OTP
+    from notifications import send_email
+    email_sent = send_email(
+        user["email"],
+        "Verify your KASU Account",
+        f"Your verification code is {otp}. It expires in 10 minutes.",
+        enabled=True,
+    )
+    
+    if email_sent:
+        flash("New verification code sent to your email.", "success")
+    else:
+        flash("Could not send verification email. Please contact support.", "error")
+    
+    return redirect(url_for("verify_otp", user_id=user_id))
 
 
 @app.route("/logout")

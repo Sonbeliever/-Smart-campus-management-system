@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ app_name }} | Verify Email</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=smart-campus-ui-3">
+</head>
+<body class="auth-page">
+  <div class="site-bg"></div>
+  <main class="auth-shell auth-shell-wide">
+    <section class="auth-panel auth-hero">
+      <div class="brand-lockup">
+        <img src="{{ url_for('static', filename='kasu.jpg') }}" alt="KASU Logo" class="landing-logo">
+        <p class="eyebrow">Kaduna State University</p>
+      </div>
+      <h1>Verify your email</h1>
+      <p class="lede">
+        We've sent a verification code to <strong>{{ user.email }}</strong>. 
+        Please enter it below to complete your registration.
+      </p>
+      <div class="mini-list">
+        <span>Code expires in 10 minutes</span>
+        <span>Check your spam folder</span>
+      </div>
+    </section>
+
+    <section class="auth-panel">
+      <p class="eyebrow">Email verification</p>
+      <h2>Enter verification code</h2>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+      <form method="post" class="stack-form">
+        <label>
+          Verification code
+          <input type="text" name="otp" placeholder="Enter 6-digit code" required pattern="[0-9]{6}" maxlength="6">
+        </label>
+        <button type="submit">Verify</button>
+      </form>
+      <p class="form-hint">
+        Didn't receive the code?
+        <form method="post" action="{{ url_for('resend_otp', user_id=user.id) }}" style="display: inline;">
+          <button type="submit" class="button-link">Resend code</button>
+        </form>
+      </p>
+      <p class="form-hint">
+        <a href="{{ url_for('login') }}">Back to login</a>
+      </p>
+    </section>
+  </main>
+</body>
+</html>
