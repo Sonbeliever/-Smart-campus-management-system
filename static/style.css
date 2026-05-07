@@ -1547,6 +1547,7 @@ body.workspace-body .site-bg {
 
 .signup-page .site-bg {
   background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.4)),
     url('/static/signup-bg.jpg') center center / cover no-repeat;
 }
 
