@@ -1845,7 +1845,7 @@ def register():
         from datetime import timedelta
         otp = f"{uuid.uuid4().int % 1000000:06d}"
         otp_hash = generate_password_hash(otp)
-        expires_at = (now_iso_datetime() + timedelta(minutes=10)).isoformat()
+        expires_at = (now_local() + timedelta(minutes=10)).isoformat(timespec="seconds")
         
         conn.execute(
             """
@@ -1945,7 +1945,7 @@ def resend_otp(user_id):
     from datetime import timedelta
     otp = f"{uuid.uuid4().int % 1000000:06d}"
     otp_hash = generate_password_hash(otp)
-    expires_at = (now_iso_datetime() + timedelta(minutes=10)).isoformat()
+    expires_at = (now_local() + timedelta(minutes=10)).isoformat(timespec="seconds")
     
     conn.execute(
         """
