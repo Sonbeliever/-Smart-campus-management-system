@@ -1534,8 +1534,9 @@ body.workspace-body .site-bg {
 
 .auth-page .site-bg {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0)),
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 28%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.9)),
+    url('{{ url_for('static', filename='login-bg.jpeg') }}') center center / cover no-repeat,
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.1), transparent 28%);
 }
 
 .dashboard-shell {
