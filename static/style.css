@@ -1545,12 +1545,6 @@ body.workspace-body .site-bg {
   z-index: -1;
 }
 
-.signup-page .site-bg {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.4)),
-    url('/static/signup-bg.jpg') center center / cover no-repeat;
-}
-
 .dashboard-shell {
   position: relative;
   z-index: 1;
