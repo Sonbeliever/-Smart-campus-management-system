@@ -2225,6 +2225,28 @@ def delete_account(account_id: int):
 
     conn = get_conn()
     try:
+        # For super admins, cascade delete all related records
+        if user["role"] == "super_admin":
+            # Delete email verification records
+            conn.execute("DELETE FROM email_verification WHERE user_id = ?", (account_id,))
+            # Delete community poll votes
+            conn.execute("DELETE FROM community_poll_votes WHERE voter_id = ?", (account_id,))
+            # Delete community likes
+            conn.execute("DELETE FROM community_likes WHERE user_id = ?", (account_id,))
+            # Delete community comments
+            conn.execute("DELETE FROM community_comments WHERE author_id = ?", (account_id,))
+            # Delete community posts
+            conn.execute("DELETE FROM community_posts WHERE author_id = ?", (account_id,))
+            # Delete attendance records
+            conn.execute("DELETE FROM attendance_records WHERE student_id = ?", (account_id,))
+            # Delete attendance sessions started by this user
+            conn.execute("DELETE FROM attendance_sessions WHERE started_by = ?", (account_id,))
+            # Delete courses created by this user
+            conn.execute("DELETE FROM courses WHERE created_by = ?", (account_id,))
+            # Delete ID card requests
+            conn.execute("DELETE FROM id_card_requests WHERE student_id = ? OR reviewed_by = ?", (account_id, account_id))
+        
+        # Delete the account
         conn.execute("DELETE FROM accounts WHERE id = ?", (account_id,))
         conn.commit()
         flash("Account deleted.", "success")
