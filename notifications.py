@@ -15,7 +15,7 @@ def send_email(to_email, subject, body, enabled=True):
     smtp_user = os.getenv("SMTP_USER", "")
     smtp_password = os.getenv("SMTP_PASS", "")
     from_email = os.getenv("FROM_EMAIL", smtp_user)
-    smtp_timeout = float(os.getenv("SMTP_TIMEOUT", "10"))
+    smtp_timeout = float(os.getenv("SMTP_TIMEOUT", "30"))
 
     # Check if required config is present
     if not smtp_host or not smtp_user or not smtp_password or not to_email:
