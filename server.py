@@ -14,6 +14,8 @@ from xml.sax.saxutils import escape
 from zoneinfo import ZoneInfo
 
 import qrcode
+import psycopg2
+from psycopg2 import pool
 from flask import (
     Flask,
     abort,
@@ -142,11 +144,32 @@ def bootstrap_storage() -> None:
     seed_storage_folder(LEGACY_RECEIPT_UPLOAD_DIR, RECEIPT_UPLOAD_DIR)
 
 
-def get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+def get_conn():
+    """Get database connection - PostgreSQL for production, SQLite for local development."""
+    database_url = os.getenv("DATABASE_URL")
+    
+    if database_url:
+        # Use PostgreSQL for production
+        if not hasattr(get_conn, "pool"):
+            get_conn.pool = psycopg2.pool.SimpleConnectionPool(1, 20, database_url)
+        conn = get_conn.pool.getconn()
+        return conn
+    else:
+        # Use SQLite for local development
+        conn = sqlite3.connect(DB_FILE)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        return conn
+
+
+def close_conn(conn):
+    """Close database connection."""
+    database_url = os.getenv("DATABASE_URL")
+    
+    if database_url and hasattr(get_conn, "pool"):
+        get_conn.pool.putconn(conn)
+    else:
+        conn.close()
 
 
 def now_local() -> datetime:
