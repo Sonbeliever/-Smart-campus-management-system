@@ -14,8 +14,8 @@ from xml.sax.saxutils import escape
 from zoneinfo import ZoneInfo
 
 import qrcode
-import psycopg2
-from psycopg2 import pool
+import psycopg
+from psycopg import pool
 from flask import (
     Flask,
     abort,
@@ -151,9 +151,8 @@ def get_conn():
     if database_url:
         # Use PostgreSQL for production
         if not hasattr(get_conn, "pool"):
-            get_conn.pool = psycopg2.pool.SimpleConnectionPool(1, 20, database_url)
-        conn = get_conn.pool.getconn()
-        return conn
+            get_conn.pool = psycopg.ConnectionPool(database_url, min_size=1, max_size=20)
+        return get_conn.pool.getconn()
     else:
         # Use SQLite for local development
         conn = sqlite3.connect(DB_FILE)
