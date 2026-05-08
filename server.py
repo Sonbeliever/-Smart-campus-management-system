@@ -1763,7 +1763,7 @@ def admin_dashboard_data(user: sqlite3.Row) -> dict:
         pending_deletions = conn.execute(
             """
             SELECT * FROM pending_deletions
-            WHERE resource_type = 'department'
+            WHERE resource_type IN ('department', 'course')
             """
         ).fetchall()
         # Get all courses
@@ -2352,6 +2352,20 @@ def process_pending_deletions():
                     "DELETE FROM pending_deletions WHERE id = ?",
                     (deletion["id"],)
                 )
+            elif resource_type == "course":
+                # Delete attendance records that reference this course's sessions
+                conn.execute(
+                    "DELETE FROM attendance WHERE session_id IN (SELECT id FROM attendance_sessions WHERE course_id = ?)",
+                    (resource_id,)
+                )
+                # Delete attendance sessions that reference this course
+                conn.execute("DELETE FROM attendance_sessions WHERE course_id = ?", (resource_id,))
+                # Delete the course
+                conn.execute("DELETE FROM courses WHERE id = ?", (resource_id,))
+                conn.execute(
+                    "DELETE FROM pending_deletions WHERE id = ?",
+                    (deletion["id"],)
+                )
         
         conn.commit()
     except Exception as exc:
@@ -2562,27 +2576,61 @@ def delete_course(course_id: int):
         conn.close()
         abort(404)
     require_department_access(user, course["department_id"])
-    try:
-        # Super admins can cascade delete courses with attendance sessions
-        if user["role"] == "super_admin":
-            # Delete attendance records that reference this course
+    
+    # Super admins schedule deletion with undo option
+    if user["role"] == "super_admin":
+        try:
+            # Check if already scheduled for deletion
+            existing = conn.execute(
+                "SELECT * FROM pending_deletions WHERE resource_type = ? AND resource_id = ?",
+                ("course", course_id)
+            ).fetchone()
+            if existing:
+                conn.close()
+                flash("Course is already scheduled for deletion.", "warning")
+                return redirect(url_for("home"))
+            
+            # Schedule deletion for 5 seconds from now
+            deletion_time = (now_local() + timedelta(seconds=5)).isoformat(timespec="seconds")
             conn.execute(
-                "DELETE FROM attendance WHERE session_id IN (SELECT id FROM attendance_sessions WHERE course_id = ?)",
-                (course_id,)
+                "INSERT INTO pending_deletions (resource_type, resource_id, deletion_time, created_at) VALUES (?, ?, ?, ?)",
+                ("course", course_id, deletion_time, now_iso())
             )
-            # Delete attendance sessions that reference this course
-            conn.execute("DELETE FROM attendance_sessions WHERE course_id = ?", (course_id,))
-        # Delete the course
+            conn.commit()
+            conn.close()
+            flash(f"Course scheduled for deletion. You have 5 seconds to undo this action.", "warning")
+        except Exception as exc:
+            conn.close()
+            flash(f"Error scheduling deletion: {exc}", "error")
+        return redirect(url_for("home"))
+    
+    # Department admins get immediate deletion with error if linked records exist
+    try:
         conn.execute("DELETE FROM courses WHERE id = ?", (course_id,))
         conn.commit()
         flash("Course deleted.", "success")
     except sqlite3.IntegrityError:
-        if user["role"] == "department_admin":
-            flash("Course cannot be deleted while attendance sessions still reference it. Contact super admin to delete.", "error")
-        else:
-            flash("Error deleting course.", "error")
+        flash("Course cannot be deleted while attendance sessions still reference it. Contact super admin to delete.", "error")
     finally:
         conn.close()
+    return redirect(url_for("home"))
+
+
+@app.route("/courses/<int:course_id>/undo-delete", methods=["POST"])
+@roles_required("super_admin")
+def undo_delete_course(course_id: int):
+    conn = get_conn()
+    try:
+        conn.execute(
+            "DELETE FROM pending_deletions WHERE resource_type = ? AND resource_id = ?",
+            ("course", course_id)
+        )
+        conn.commit()
+        conn.close()
+        flash("Course deletion cancelled.", "success")
+    except Exception as exc:
+        conn.close()
+        flash(f"Error cancelling deletion: {exc}", "error")
     return redirect(url_for("home"))
 
 
