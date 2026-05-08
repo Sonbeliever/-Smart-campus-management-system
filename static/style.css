@@ -264,7 +264,7 @@ button:hover {
 .password-toggle {
   position: absolute;
   right: 8px;
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
   padding: 4px;

@@ -1766,12 +1766,12 @@ def admin_dashboard_data(user: sqlite3.Row) -> dict:
             WHERE resource_type IN ('department', 'course')
             """
         ).fetchall()
-        # Get all courses
+        # Get all courses (excluding orphaned courses)
         courses = conn.execute(
             """
             SELECT c.*, d.name AS department_name
             FROM courses c
-            LEFT JOIN departments d ON d.id = c.department_id
+            INNER JOIN departments d ON d.id = c.department_id
             ORDER BY c.code
             """
         ).fetchall()
