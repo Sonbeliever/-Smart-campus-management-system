@@ -2071,6 +2071,10 @@ def change_password():
             flash("Current password is incorrect.", "error")
         elif not new_password:
             flash("New password cannot be empty.", "error")
+        # Validate password strength
+        is_strong, password_message, _ = validate_password_strength(new_password)
+        if not is_strong:
+            flash(password_message, "error")
         elif new_password != confirm_password:
             flash("New password and confirmation do not match.", "error")
         else:
@@ -2249,59 +2253,6 @@ def undo_delete_department(department_id: int):
         conn.close()
         flash(f"Error cancelling deletion: {exc}", "error")
     return redirect(url_for("home"))
-
-
-@app.route("/change-password", methods=["GET", "POST"])
-@login_required
-def change_password():
-    if request.method == "POST":
-        current_password = normalize_text(request.form.get("current_password"))
-        new_password = normalize_text(request.form.get("new_password"))
-        confirm_password = normalize_text(request.form.get("confirm_password"))
-        
-        user = current_user()
-        if not user:
-            flash("User not found.", "error")
-            return redirect(url_for("login"))
-        
-        # Verify current password
-        if not check_password_hash(user["password"], current_password):
-            flash("Current password is incorrect.", "error")
-            return render_template("change_password.html")
-        
-        # Validate new password strength
-        is_strong, password_message, _ = validate_password_strength(new_password)
-        if not is_strong:
-            flash(password_message, "error")
-            return render_template("change_password.html")
-        
-        # Check if new password matches current password
-        if check_password_hash(user["password"], new_password):
-            flash("New password must be different from current password.", "error")
-            return render_template("change_password.html")
-        
-        # Check if passwords match
-        if new_password != confirm_password:
-            flash("Passwords do not match.", "error")
-            return render_template("change_password.html")
-        
-        # Update password
-        conn = get_conn()
-        try:
-            conn.execute(
-                "UPDATE accounts SET password = ?, updated_at = ? WHERE id = ?",
-                (generate_password_hash(new_password), now_iso(), user["id"])
-            )
-            conn.commit()
-            conn.close()
-            flash("Password changed successfully.", "success")
-            return redirect(url_for("home"))
-        except Exception as exc:
-            conn.close()
-            flash(f"Error changing password: {exc}", "error")
-            return render_template("change_password.html")
-    
-    return render_template("change_password.html")
 
 
 def perform_cascade_delete_department(department_id: int):
