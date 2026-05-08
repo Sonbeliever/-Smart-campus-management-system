@@ -2563,11 +2563,24 @@ def delete_course(course_id: int):
         abort(404)
     require_department_access(user, course["department_id"])
     try:
+        # Super admins can cascade delete courses with attendance sessions
+        if user["role"] == "super_admin":
+            # Delete attendance records that reference this course
+            conn.execute(
+                "DELETE FROM attendance WHERE session_id IN (SELECT id FROM attendance_sessions WHERE course_id = ?)",
+                (course_id,)
+            )
+            # Delete attendance sessions that reference this course
+            conn.execute("DELETE FROM attendance_sessions WHERE course_id = ?", (course_id,))
+        # Delete the course
         conn.execute("DELETE FROM courses WHERE id = ?", (course_id,))
         conn.commit()
         flash("Course deleted.", "success")
     except sqlite3.IntegrityError:
-        flash("Course cannot be deleted while attendance sessions still reference it.", "error")
+        if user["role"] == "department_admin":
+            flash("Course cannot be deleted while attendance sessions still reference it. Contact super admin to delete.", "error")
+        else:
+            flash("Error deleting course.", "error")
     finally:
         conn.close()
     return redirect(url_for("home"))
