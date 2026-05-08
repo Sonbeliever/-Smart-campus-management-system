@@ -14,8 +14,6 @@ from xml.sax.saxutils import escape
 from zoneinfo import ZoneInfo
 
 import qrcode
-import psycopg
-from psycopg import pool
 from flask import (
     Flask,
     abort,
@@ -37,6 +35,11 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
+
+try:
+    from psycopg_pool import ConnectionPool
+except ImportError:
+    ConnectionPool = None
 
 
 APP_NAME = "Smart Campus Management System"
@@ -108,6 +111,14 @@ app.secret_key = os.getenv("SMART_CAMPUS_SECRET", "smart-campus-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 
 
+def use_postgres_backend() -> bool:
+    return (
+        os.getenv("SMART_CAMPUS_USE_POSTGRES") == "1"
+        and bool(os.getenv("DATABASE_URL"))
+        and ConnectionPool is not None
+    )
+
+
 def ensure_directories() -> None:
     os.makedirs(STATIC_DIR, exist_ok=True)
     os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
@@ -145,27 +156,22 @@ def bootstrap_storage() -> None:
 
 
 def get_conn():
-    """Get database connection - PostgreSQL for production, SQLite for local development."""
-    database_url = os.getenv("DATABASE_URL")
-    
-    if database_url:
-        # Use PostgreSQL for production
+    """Get database connection using SQLite by default and PostgreSQL only when explicitly enabled."""
+    if use_postgres_backend():
+        database_url = os.getenv("DATABASE_URL")
         if not hasattr(get_conn, "pool"):
-            get_conn.pool = psycopg.ConnectionPool(database_url, min_size=1, max_size=20)
+            get_conn.pool = ConnectionPool(conninfo=database_url, min_size=1, max_size=20)
         return get_conn.pool.getconn()
-    else:
-        # Use SQLite for local development
-        conn = sqlite3.connect(DB_FILE)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON")
-        return conn
+
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
 def close_conn(conn):
     """Close database connection."""
-    database_url = os.getenv("DATABASE_URL")
-    
-    if database_url and hasattr(get_conn, "pool"):
+    if use_postgres_backend() and hasattr(get_conn, "pool"):
         get_conn.pool.putconn(conn)
     else:
         conn.close()
