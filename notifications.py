@@ -1,61 +1,43 @@
 import os
-import smtplib
-import threading
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-
-def _send_email_sync(to_email, subject, body, smtp_host, smtp_port, smtp_user, smtp_password, from_email, smtp_timeout):
-    """Synchronous email sending function to be run in a thread."""
-    try:
-        msg = MIMEMultipart()
-        msg["From"] = from_email
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        # Port 465 expects implicit TLS, while 587 uses STARTTLS.
-        if smtp_port == 465:
-            with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=smtp_timeout) as server:
-                server.login(smtp_user, smtp_password)
-                server.sendmail(from_email, to_email, msg.as_string())
-        else:
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=smtp_timeout) as server:
-                server.starttls()
-                server.login(smtp_user, smtp_password)
-                server.sendmail(from_email, to_email, msg.as_string())
-        print(f"Email sent to {to_email}")
-        return True
-    except Exception as exc:
-        print(f"Email send failed: {exc}")
-        return False
+import requests
 
 
 def send_email(to_email, subject, body, enabled=True):
-    """Send email using SMTP configuration from environment variables (async)."""
+    """Send email using Brevo HTTP API to avoid SMTP IP blocking."""
     if not enabled:
         return False
 
-    # Get SMTP configuration from environment variables
-    smtp_host = os.getenv("SMTP_HOST", "")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_password = os.getenv("SMTP_PASS", "")
-    from_email = os.getenv("FROM_EMAIL", smtp_user)
-    smtp_timeout = float(os.getenv("SMTP_TIMEOUT", "10"))
-
+    # Get Brevo API configuration
+    api_key = os.getenv("BREVO_API_KEY", "")
+    from_email = os.getenv("FROM_EMAIL", "")
+    
     # Check if required config is present
-    if not smtp_host or not smtp_user or not smtp_password or not to_email:
-        print(f"Email not sent: missing SMTP config or recipient. To: {to_email}")
+    if not api_key or not from_email or not to_email:
+        print(f"Email not sent: missing Brevo API config or recipient. To: {to_email}")
         return False
 
-    # Send email asynchronously to avoid blocking the request
-    thread = threading.Thread(
-        target=_send_email_sync,
-        args=(to_email, subject, body, smtp_host, smtp_port, smtp_user, smtp_password, from_email, smtp_timeout)
-    )
-    thread.daemon = True
-    thread.start()
-    
-    # Return True immediately - email will be sent in background
-    return True
+    try:
+        res = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "accept": "application/json",
+                "api-key": api_key,
+                "content-type": "application/json",
+            },
+            json={
+                "sender": {"email": from_email},
+                "to": [{"email": to_email}],
+                "subject": subject,
+                "textContent": body,
+            },
+            timeout=10,
+        )
+        if 200 <= res.status_code < 300:
+            print(f"Email sent to {to_email}")
+            return True
+        else:
+            print(f"Email send failed: Brevo API returned {res.status_code}: {res.text[:200]}")
+            return False
+    except Exception as exc:
+        print(f"Email send failed: {exc}")
+        return False
