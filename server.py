@@ -1901,7 +1901,7 @@ def verify_otp(user_id):
         
         from datetime import datetime
         expires_at = datetime.fromisoformat(otp_record["expires_at"])
-        if datetime.now() > expires_at:
+        if now_local() > expires_at:
             conn.close()
             flash("Verification code has expired. Please request a new one.", "error")
             return redirect(url_for("resend_otp", user_id=user_id))
