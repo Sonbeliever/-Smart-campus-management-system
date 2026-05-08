@@ -213,6 +213,43 @@ button:hover {
   background: linear-gradient(135deg, var(--danger), #8b2c27);
 }
 
+.password-strength-meter {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.password-strength-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-strength-bar.weak {
+  background: #ff4d4d;
+}
+
+.password-strength-bar.medium {
+  background: #ffaa00;
+}
+
+.password-strength-bar.strong {
+  background: #4caf50;
+}
+
+.password-strength-bar.very-strong {
+  background: #2e7d32;
+}
+
+.password-strength-text {
+  font-size: 12px;
+  margin-top: 4px;
+  color: #666;
+}
+
 .identity-strip,
 .hero-card {
   display: flex;
