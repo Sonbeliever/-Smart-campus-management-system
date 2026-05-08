@@ -323,6 +323,14 @@
           </thead>
           <tbody>
             {% for department in dashboard.departments %}
+            {% set is_pending = false %}
+            {% set pending_id = none %}
+            {% for deletion in dashboard.pending_deletions %}
+              {% if deletion.resource_id == department.id %}
+                {% set is_pending = true %}
+                {% set pending_id = deletion.id %}
+              {% endif %}
+            {% endfor %}
             <tr>
               <td>{{ department.name }}</td>
               <td>{{ department.code }}</td>
@@ -330,9 +338,15 @@
               <td>{{ department.student_count }}</td>
               <td>{{ department.course_count }}</td>
               <td>
-                <form method="post" action="{{ url_for('delete_department', department_id=department.id) }}" onsubmit="return confirm('Delete this department?')">
-                  <button type="submit" class="button-danger">Delete</button>
-                </form>
+                {% if is_pending %}
+                  <form method="post" action="{{ url_for('undo_delete_department', department_id=department.id) }}">
+                    <button type="submit" class="button-warning">Undo</button>
+                  </form>
+                {% else %}
+                  <form method="post" action="{{ url_for('delete_department', department_id=department.id) }}" onsubmit="return confirm('Delete this department?')">
+                    <button type="submit" class="button-danger">Delete</button>
+                  </form>
+                {% endif %}
               </td>
             </tr>
             {% else %}

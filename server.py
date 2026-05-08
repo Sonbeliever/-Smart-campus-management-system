@@ -535,6 +535,14 @@ def initialize_db() -> None:
             created_at TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES accounts(id)
         );
+
+        CREATE TABLE IF NOT EXISTS pending_deletions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            resource_type TEXT NOT NULL,
+            resource_id INTEGER NOT NULL,
+            deletion_time TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
         """
     )
     existing_super_admin = conn.execute(
@@ -667,6 +675,8 @@ def current_user() -> sqlite3.Row | None:
 @app.before_request
 def load_current_user() -> None:
     g.current_user = get_account(session.get("user_id")) if session.get("user_id") else None
+    # Process any expired pending deletions
+    process_pending_deletions()
 
 
 @app.context_processor
@@ -1696,6 +1706,13 @@ def admin_dashboard_data(user: sqlite3.Row) -> dict:
             LIMIT 12
             """
         ).fetchall()
+        # Get pending deletions
+        pending_deletions = conn.execute(
+            """
+            SELECT * FROM pending_deletions
+            WHERE resource_type = 'department'
+            """
+        ).fetchall()
     else:
         counts = {
             "departments": 1,
@@ -1734,6 +1751,7 @@ def admin_dashboard_data(user: sqlite3.Row) -> dict:
         "recent_sessions": get_recent_sessions(user),
         "recent_attendance": get_recent_attendance(user),
         "reprint_requests": get_pending_reprint_requests(user),
+        "pending_deletions": pending_deletions if user["role"] == "super_admin" else [],
         "flagged_items": get_flagged_content(user),
         "analytics": analytics[:10],
     }
@@ -2123,14 +2141,151 @@ def create_department():
 def delete_department(department_id: int):
     conn = get_conn()
     try:
-        conn.execute("DELETE FROM departments WHERE id = ?", (department_id,))
+        # Check if department exists
+        department = conn.execute("SELECT * FROM departments WHERE id = ?", (department_id,)).fetchone()
+        if not department:
+            conn.close()
+            flash("Department not found.", "error")
+            return redirect(url_for("home"))
+        
+        # Check if already scheduled for deletion
+        existing = conn.execute(
+            "SELECT * FROM pending_deletions WHERE resource_type = ? AND resource_id = ?",
+            ("department", department_id)
+        ).fetchone()
+        if existing:
+            conn.close()
+            flash("Department is already scheduled for deletion.", "warning")
+            return redirect(url_for("home"))
+        
+        # Schedule deletion for 1 minute from now
+        deletion_time = (now_local() + timedelta(minutes=1)).isoformat(timespec="seconds")
+        conn.execute(
+            "INSERT INTO pending_deletions (resource_type, resource_id, deletion_time, created_at) VALUES (?, ?, ?, ?)",
+            ("department", department_id, deletion_time, now_iso())
+        )
         conn.commit()
-        flash("Department deleted.", "success")
-    except sqlite3.IntegrityError:
-        flash("Department cannot be deleted while it still has linked records.", "error")
+        conn.close()
+        flash(f"Department scheduled for deletion. You have 1 minute to undo this action.", "warning")
+    except Exception as exc:
+        conn.close()
+        flash(f"Error scheduling deletion: {exc}", "error")
+    return redirect(url_for("home"))
+
+
+@app.route("/departments/<int:department_id>/undo-delete", methods=["POST"])
+@roles_required("super_admin")
+def undo_delete_department(department_id: int):
+    conn = get_conn()
+    try:
+        conn.execute(
+            "DELETE FROM pending_deletions WHERE resource_type = ? AND resource_id = ?",
+            ("department", department_id)
+        )
+        conn.commit()
+        conn.close()
+        flash("Department deletion cancelled.", "success")
+    except Exception as exc:
+        conn.close()
+        flash(f"Error cancelling deletion: {exc}", "error")
+    return redirect(url_for("home"))
+
+
+def perform_cascade_delete_department(department_id: int):
+    """Cascade delete a department and all related records."""
+    conn = get_conn()
+    try:
+        # Delete community poll votes
+        conn.execute(
+            "DELETE FROM community_poll_votes WHERE department_id = ?",
+            (department_id,)
+        )
+        # Delete community likes
+        conn.execute(
+            "DELETE FROM community_likes WHERE department_id = ?",
+            (department_id,)
+        )
+        # Delete community comments
+        conn.execute(
+            "DELETE FROM community_comments WHERE department_id = ?",
+            (department_id,)
+        )
+        # Delete community posts
+        conn.execute(
+            "DELETE FROM community_posts WHERE department_id = ?",
+            (department_id,)
+        )
+        # Delete attendance records
+        conn.execute(
+            "DELETE FROM attendance_records WHERE department_id = ?",
+            (department_id,)
+        )
+        # Delete attendance sessions
+        conn.execute(
+            "DELETE FROM attendance_sessions WHERE department_id = ?",
+            (department_id,)
+        )
+        # Delete courses
+        conn.execute(
+            "DELETE FROM courses WHERE department_id = ?",
+            (department_id,)
+        )
+        # Delete ID card requests
+        conn.execute(
+            "DELETE FROM id_card_requests WHERE department_id = ?",
+            (department_id,)
+        )
+        # Delete department admins (set to students or delete)
+        conn.execute(
+            "DELETE FROM accounts WHERE department_id = ? AND role = 'department_admin'",
+            (department_id,)
+        )
+        # Update students to remove department reference
+        conn.execute(
+            "UPDATE accounts SET department_id = NULL WHERE department_id = ? AND role = 'student'",
+            (department_id,)
+        )
+        # Finally delete the department
+        conn.execute(
+            "DELETE FROM departments WHERE id = ?",
+            (department_id,)
+        )
+        conn.commit()
+        print(f"Cascade deleted department {department_id} and all related records")
+    except Exception as exc:
+        print(f"Error during cascade delete: {exc}")
+        conn.rollback()
     finally:
         conn.close()
-    return redirect(url_for("home"))
+
+
+def process_pending_deletions():
+    """Check for expired pending deletions and perform them."""
+    conn = get_conn()
+    try:
+        now = now_local().isoformat(timespec="seconds")
+        expired = conn.execute(
+            "SELECT * FROM pending_deletions WHERE deletion_time <= ?",
+            (now,)
+        ).fetchall()
+        
+        for deletion in expired:
+            resource_type = deletion["resource_type"]
+            resource_id = deletion["resource_id"]
+            
+            if resource_type == "department":
+                perform_cascade_delete_department(resource_id)
+                conn.execute(
+                    "DELETE FROM pending_deletions WHERE id = ?",
+                    (deletion["id"],)
+                )
+        
+        conn.commit()
+    except Exception as exc:
+        print(f"Error processing pending deletions: {exc}")
+        conn.rollback()
+    finally:
+        conn.close()
 
 
 @app.route("/admins/create", methods=["POST"])
