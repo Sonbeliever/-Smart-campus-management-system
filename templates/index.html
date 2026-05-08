@@ -323,28 +323,16 @@
           </thead>
           <tbody>
             {% for department in dashboard.departments %}
-            {% set is_pending = namespace(found=False) %}
-            {% for deletion in dashboard.pending_deletions %}
-              {% if deletion.resource_id == department.id %}
-                {% set is_pending.found = True %}
-              {% endif %}
-            {% endfor %}
-            <tr class="{{ 'deletion-pending' if is_pending.found else '' }}">
+            <tr>
               <td>{{ department.name }}</td>
               <td>{{ department.code }}</td>
               <td>{{ department.admin_count }}</td>
               <td>{{ department.student_count }}</td>
               <td>{{ department.course_count }}</td>
               <td>
-                {% if is_pending.found %}
-                  <form method="post" action="{{ url_for('undo_delete_department', department_id=department.id) }}">
-                    <button type="submit" class="button-warning">Undo</button>
-                  </form>
-                {% else %}
-                  <form method="post" action="{{ url_for('delete_department', department_id=department.id) }}" onsubmit="return confirm('Delete this department?')">
-                    <button type="submit" class="button-danger">Delete</button>
-                  </form>
-                {% endif %}
+                <form method="post" action="{{ url_for('delete_department', department_id=department.id) }}" onsubmit="return confirm('Delete this department?')">
+                  <button type="submit" class="button-danger">Delete</button>
+                </form>
               </td>
             </tr>
             {% else %}
@@ -379,27 +367,15 @@
           </thead>
           <tbody>
             {% for course in dashboard.courses %}
-            {% set is_pending = namespace(found=False) %}
-            {% for deletion in dashboard.pending_deletions %}
-              {% if deletion.resource_id == course.id and deletion.resource_type == 'course' %}
-                {% set is_pending.found = True %}
-              {% endif %}
-            {% endfor %}
-            <tr class="{{ 'deletion-pending' if is_pending.found else '' }}">
+            <tr>
               <td>{{ course.code }}</td>
               <td>{{ course.title }}</td>
               <td>{{ course.department_name or 'Orphaned' }}</td>
               <td>{{ course.created_by }}</td>
               <td>
-                {% if is_pending.found %}
-                  <form method="post" action="{{ url_for('undo_delete_course', course_id=course.id) }}">
-                    <button type="submit" class="button-warning">Undo</button>
-                  </form>
-                {% else %}
-                  <form method="post" action="{{ url_for('delete_course', course_id=course.id) }}" onsubmit="return confirm('Delete this course?')">
-                    <button type="submit" class="button-danger">Delete</button>
-                  </form>
-                {% endif %}
+                <form method="post" action="{{ url_for('delete_course', course_id=course.id) }}" onsubmit="return confirm('Delete this course?')">
+                  <button type="submit" class="button-danger">Delete</button>
+                </form>
               </td>
             </tr>
             {% else %}
