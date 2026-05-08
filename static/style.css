@@ -288,6 +288,19 @@ button:hover {
   display: block;
 }
 
+.danger-zone {
+  padding: 20px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+}
+
+.danger-zone p {
+  color: #991b1b;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
 .identity-strip,
 .hero-card {
   display: flex;

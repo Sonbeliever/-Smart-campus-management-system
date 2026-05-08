@@ -3699,6 +3699,28 @@ def forbidden(_error):
     return render_template("forbidden.html"), 403
 
 
+@app.route("/reset-database", methods=["POST"])
+@roles_required("super_admin")
+def reset_database():
+    """Delete all data from database to start fresh."""
+    conn = get_conn()
+    try:
+        # Delete all data in correct order to respect foreign keys
+        conn.execute("DELETE FROM attendance")
+        conn.execute("DELETE FROM attendance_sessions")
+        conn.execute("DELETE FROM reprint_requests")
+        conn.execute("DELETE FROM courses")
+        conn.execute("DELETE FROM accounts")
+        conn.execute("DELETE FROM departments")
+        conn.commit()
+        conn.close()
+        flash("Database reset successfully. All data has been deleted.", "success")
+    except Exception as exc:
+        conn.close()
+        flash(f"Error resetting database: {exc}", "error")
+    return redirect(url_for("home"))
+
+
 initialize_db()
 
 
