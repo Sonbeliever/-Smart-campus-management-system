@@ -263,16 +263,19 @@ button:hover {
 
 .password-toggle {
   position: absolute;
-  right: 8px;
-  background: transparent;
+  right: 12px;
+  background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--muted);
   transition: color 0.2s ease;
+  width: 20px;
+  height: 20px;
 }
 
 .password-toggle:hover {
@@ -282,6 +285,7 @@ button:hover {
 .password-toggle svg {
   width: 20px;
   height: 20px;
+  display: block;
 }
 
 .identity-strip,
@@ -3251,6 +3255,22 @@ tbody td {
     font-size: 12px;
   }
   
+  /* Fix password toggle on small phones */
+  .password-input-wrapper input {
+    padding-right: 36px;
+  }
+  
+  .password-toggle {
+    right: 8px;
+    width: 16px;
+    height: 16px;
+  }
+  
+  .password-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
+  
   /* Fix table overflow on small screens */
   .table-wrap {
     overflow-x: auto;
@@ -3369,6 +3389,22 @@ tbody td {
     padding: 6px 10px;
     font-size: 11px;
     min-height: 32px;
+  }
+  
+  /* Fix password toggle on extra small phones */
+  .password-input-wrapper input {
+    padding-right: 32px;
+  }
+  
+  .password-toggle {
+    right: 6px;
+    width: 14px;
+    height: 14px;
+  }
+  
+  .password-toggle svg {
+    width: 14px;
+    height: 14px;
   }
 }
 
