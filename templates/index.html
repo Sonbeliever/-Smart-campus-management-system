@@ -358,6 +358,49 @@
     </article>
     {% endif %}
 
+    {% if current_user.role == 'super_admin' and dashboard.courses %}
+    <article class="section-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Courses</p>
+          <h3>Manage courses ({{ dashboard.courses|length }} total)</h3>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Title</th>
+              <th>Department</th>
+              <th>Created By</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in dashboard.courses %}
+            <tr>
+              <td>{{ course.code }}</td>
+              <td>{{ course.title }}</td>
+              <td>{{ course.department_name or 'Orphaned' }}</td>
+              <td>{{ course.created_by }}</td>
+              <td>
+                <form method="post" action="{{ url_for('delete_course', course_id=course.id) }}" onsubmit="return confirm('Delete this course?')">
+                  <button type="submit" class="button-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="empty-state">No courses found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+    {% endif %}
+
     <div class="grid-two dashboard-lower-grid">
       <article class="section-card">
         <div class="section-head">

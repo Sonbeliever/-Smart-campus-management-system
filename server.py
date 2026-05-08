@@ -1766,6 +1766,15 @@ def admin_dashboard_data(user: sqlite3.Row) -> dict:
             WHERE resource_type = 'department'
             """
         ).fetchall()
+        # Get all courses
+        courses = conn.execute(
+            """
+            SELECT c.*, d.name AS department_name
+            FROM courses c
+            LEFT JOIN departments d ON d.id = c.department_id
+            ORDER BY c.code
+            """
+        ).fetchall()
     else:
         counts = {
             "departments": 1,
@@ -1800,7 +1809,7 @@ def admin_dashboard_data(user: sqlite3.Row) -> dict:
         "departments": departments,
         "department_admins": department_admins,
         "students": students,
-        "courses": get_courses_for_department(user["department_id"]) if user["role"] == "department_admin" else [],
+        "courses": get_courses_for_department(user["department_id"]) if user["role"] == "department_admin" else (courses if user["role"] == "super_admin" else []),
         "recent_sessions": get_recent_sessions(user),
         "recent_attendance": get_recent_attendance(user),
         "reprint_requests": get_pending_reprint_requests(user),
