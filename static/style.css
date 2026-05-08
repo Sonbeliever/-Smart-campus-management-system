@@ -2123,6 +2123,12 @@ button.icon-button svg {
   line-height: 1.6;
 }
 
+.deletion-pending {
+  text-decoration: line-through;
+  opacity: 0.6;
+  background-color: rgba(255, 0, 0, 0.05);
+}
+
 .profile-panel,
 .profile-card {
   display: flex;

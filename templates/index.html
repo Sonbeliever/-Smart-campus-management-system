@@ -323,22 +323,20 @@
           </thead>
           <tbody>
             {% for department in dashboard.departments %}
-            {% set is_pending = false %}
-            {% set pending_id = none %}
+            {% set is_pending = namespace(found=False) %}
             {% for deletion in dashboard.pending_deletions %}
               {% if deletion.resource_id == department.id %}
-                {% set is_pending = true %}
-                {% set pending_id = deletion.id %}
+                {% set is_pending.found = True %}
               {% endif %}
             {% endfor %}
-            <tr>
+            <tr class="{{ 'deletion-pending' if is_pending.found else '' }}">
               <td>{{ department.name }}</td>
               <td>{{ department.code }}</td>
               <td>{{ department.admin_count }}</td>
               <td>{{ department.student_count }}</td>
               <td>{{ department.course_count }}</td>
               <td>
-                {% if is_pending %}
+                {% if is_pending.found %}
                   <form method="post" action="{{ url_for('undo_delete_department', department_id=department.id) }}">
                     <button type="submit" class="button-warning">Undo</button>
                   </form>
