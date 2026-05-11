@@ -61,9 +61,19 @@ def resolve_rooted_path(value: str | None, default_value: str, root_dir: str) ->
     return os.path.abspath(os.path.join(root_dir, candidate))
 
 
+def using_render_ephemeral_storage() -> bool:
+    return (
+        os.getenv("RENDER") == "true"
+        and not os.getenv("SMART_CAMPUS_DATA_ROOT")
+        and not os.getenv("SMART_CAMPUS_DB")
+        and not os.getenv("RAILWAY_VOLUME_MOUNT_PATH")
+    )
+
+
+DEFAULT_DATA_ROOT = ".runtime-data" if using_render_ephemeral_storage() else (os.getenv("RAILWAY_VOLUME_MOUNT_PATH") or ".")
 DATA_ROOT = resolve_rooted_path(
     os.getenv("SMART_CAMPUS_DATA_ROOT"),
-    os.getenv("RAILWAY_VOLUME_MOUNT_PATH") or ".",
+    DEFAULT_DATA_ROOT,
     BASE_DIR,
 )
 MEDIA_ROOT = resolve_rooted_path(os.getenv("SMART_CAMPUS_MEDIA_ROOT"), "media", DATA_ROOT)
@@ -147,7 +157,8 @@ def bootstrap_storage() -> None:
     if DATA_ROOT == BASE_DIR or os.getenv("SMART_CAMPUS_SKIP_BOOTSTRAP") == "1":
         return
 
-    if not os.path.exists(DB_FILE) and os.path.exists(LEGACY_DB_FILE):
+    should_seed_legacy_db = not using_render_ephemeral_storage()
+    if should_seed_legacy_db and not os.path.exists(DB_FILE) and os.path.exists(LEGACY_DB_FILE):
         shutil.copy2(LEGACY_DB_FILE, DB_FILE)
 
     seed_storage_folder(LEGACY_QR_DIR, QR_DIR)
@@ -3733,17 +3744,40 @@ def reset_database():
     """Delete all data from database to start fresh."""
     conn = get_conn()
     try:
-        # Delete all data in correct order to respect foreign keys
-        conn.execute("DELETE FROM attendance")
-        conn.execute("DELETE FROM attendance_sessions")
-        conn.execute("DELETE FROM reprint_requests")
-        conn.execute("DELETE FROM courses")
-        conn.execute("DELETE FROM accounts")
-        conn.execute("DELETE FROM departments")
+        if not use_postgres_backend():
+            conn.execute("PRAGMA foreign_keys = OFF")
+        reset_order = [
+            "community_poll_votes",
+            "community_poll_options",
+            "community_likes",
+            "community_comments",
+            "community_posts",
+            "id_card_requests",
+            "attendance_records",
+            "attendance_sessions",
+            "courses",
+            "email_verification",
+            "pending_deletions",
+            "accounts",
+            "departments",
+        ]
+        for table_name in reset_order:
+            if table_exists(conn, table_name):
+                conn.execute(f"DELETE FROM {table_name}")
         conn.commit()
+        if not use_postgres_backend():
+            conn.execute("PRAGMA foreign_keys = ON")
         conn.close()
-        flash("Database reset successfully. All data has been deleted.", "success")
+        initialize_db()
+        session.clear()
+        flash("Database reset successfully. The default super admin account has been restored.", "success")
+        return redirect(url_for("login"))
     except Exception as exc:
+        if not use_postgres_backend():
+            try:
+                conn.execute("PRAGMA foreign_keys = ON")
+            except Exception:
+                pass
         conn.close()
         flash(f"Error resetting database: {exc}", "error")
     return redirect(url_for("home"))
