@@ -384,6 +384,9 @@ def apply_legacy_schema_migrations(conn: sqlite3.Connection) -> None:
     else:
         default_department_id = int(default_department["id"])
 
+    ensure_column(conn, "departments", "faculty", "TEXT")
+    ensure_column(conn, "departments", "programme", "TEXT")
+
     ensure_column(conn, "accounts", "role", "TEXT NOT NULL DEFAULT 'student'")
     ensure_column(conn, "accounts", "department_id", "INTEGER")
     ensure_column(conn, "accounts", "matric_number", "TEXT")
@@ -455,6 +458,8 @@ def initialize_db() -> None:
             name TEXT NOT NULL UNIQUE,
             code TEXT NOT NULL UNIQUE,
             description TEXT,
+            faculty TEXT,
+            programme TEXT,
             created_at TEXT NOT NULL
         );
 
