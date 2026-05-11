@@ -2109,6 +2109,10 @@ button.icon-button svg {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.metric-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .metric-grid-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }

@@ -134,7 +134,8 @@
   </aside>
 </section>
 {% else %}
-<section class="metric-grid metric-grid-5">
+<section class="metric-grid {{ 'metric-grid-5' if current_user.role == 'super_admin' else 'metric-grid-3' }}">
+  {% if current_user.role == 'super_admin' %}
   <article class="metric-card">
     <span>Departments</span>
     <strong>{{ dashboard.counts.departments }}</strong>
@@ -145,6 +146,7 @@
     <strong>{{ dashboard.counts.department_admins }}</strong>
     <small>Assigned staff accounts</small>
   </article>
+  {% endif %}
   <article class="metric-card">
     <span>Students</span>
     <strong>{{ dashboard.counts.students }}</strong>
