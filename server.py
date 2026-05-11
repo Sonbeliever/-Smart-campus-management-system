@@ -3742,43 +3742,45 @@ def forbidden(_error):
 @roles_required("super_admin")
 def reset_database():
     """Delete all data from database to start fresh."""
-    conn = get_conn()
     try:
         if not use_postgres_backend():
-            conn.execute("PRAGMA foreign_keys = OFF")
-        reset_order = [
-            "community_poll_votes",
-            "community_poll_options",
-            "community_likes",
-            "community_comments",
-            "community_posts",
-            "id_card_requests",
-            "attendance_records",
-            "attendance_sessions",
-            "courses",
-            "email_verification",
-            "pending_deletions",
-            "accounts",
-            "departments",
-        ]
-        for table_name in reset_order:
-            if table_exists(conn, table_name):
-                conn.execute(f"DELETE FROM {table_name}")
-        conn.commit()
-        if not use_postgres_backend():
-            conn.execute("PRAGMA foreign_keys = ON")
-        conn.close()
+            runtime_conn = get_conn()
+            runtime_conn.close()
+
+            if os.path.exists(DB_FILE):
+                os.remove(DB_FILE)
+
+            for directory in (QR_DIR, PROFILE_UPLOAD_DIR, RECEIPT_UPLOAD_DIR):
+                if os.path.isdir(directory):
+                    shutil.rmtree(directory, ignore_errors=True)
+        else:
+            conn = get_conn()
+            reset_order = [
+                "community_poll_votes",
+                "community_poll_options",
+                "community_likes",
+                "community_comments",
+                "community_posts",
+                "id_card_requests",
+                "attendance_records",
+                "attendance_sessions",
+                "courses",
+                "email_verification",
+                "pending_deletions",
+                "accounts",
+                "departments",
+            ]
+            for table_name in reset_order:
+                if table_exists(conn, table_name):
+                    conn.execute(f"DELETE FROM {table_name}")
+            conn.commit()
+            conn.close()
+
         initialize_db()
         session.clear()
         flash("Database reset successfully. The default super admin account has been restored.", "success")
         return redirect(url_for("login"))
     except Exception as exc:
-        if not use_postgres_backend():
-            try:
-                conn.execute("PRAGMA foreign_keys = ON")
-            except Exception:
-                pass
-        conn.close()
         flash(f"Error resetting database: {exc}", "error")
     return redirect(url_for("home"))
 
