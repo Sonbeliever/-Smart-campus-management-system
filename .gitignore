@@ -4,6 +4,8 @@ static/uploads/
 smoke_test*.db
 media/
 data/
+.runtime-data/
+.smart-campus-data/
 *.db-shm
 *.db-wal
 *.db-journal
