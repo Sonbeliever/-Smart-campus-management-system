@@ -166,6 +166,16 @@ def bootstrap_storage() -> None:
     seed_storage_folder(LEGACY_RECEIPT_UPLOAD_DIR, RECEIPT_UPLOAD_DIR)
 
 
+def configure_sqlite_connection(conn: sqlite3.Connection) -> sqlite3.Connection:
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA busy_timeout = 5000")
+    conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA synchronous = NORMAL")
+    conn.execute("PRAGMA temp_store = MEMORY")
+    return conn
+
+
 def get_conn():
     """Get database connection using SQLite by default and PostgreSQL only when explicitly enabled."""
     if use_postgres_backend():
@@ -174,10 +184,8 @@ def get_conn():
             get_conn.pool = ConnectionPool(conninfo=database_url, min_size=1, max_size=20)
         return get_conn.pool.getconn()
 
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    conn = sqlite3.connect(DB_FILE, timeout=30)
+    return configure_sqlite_connection(conn)
 
 
 def close_conn(conn):
@@ -615,14 +623,24 @@ def initialize_db() -> None:
 
         CREATE INDEX IF NOT EXISTS idx_accounts_role_department
             ON accounts(role, department_id);
+        CREATE INDEX IF NOT EXISTS idx_accounts_department_active
+            ON accounts(department_id, role, is_active);
         CREATE INDEX IF NOT EXISTS idx_courses_department
             ON courses(department_id);
         CREATE INDEX IF NOT EXISTS idx_sessions_department_status
             ON attendance_sessions(department_id, status, session_date);
+        CREATE INDEX IF NOT EXISTS idx_sessions_course_status
+            ON attendance_sessions(course_id, status, session_date);
         CREATE INDEX IF NOT EXISTS idx_records_department_student
             ON attendance_records(department_id, student_id, marked_at);
+        CREATE INDEX IF NOT EXISTS idx_records_student_course
+            ON attendance_records(student_id, course_id, marked_at);
         CREATE INDEX IF NOT EXISTS idx_posts_department_visibility
             ON community_posts(department_id, visibility, moderation_status, created_at);
+        CREATE INDEX IF NOT EXISTS idx_comments_post_created
+            ON community_comments(post_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_requests_department_status
+            ON id_card_requests(department_id, status, requested_at);
 
         CREATE TABLE IF NOT EXISTS email_verification (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -640,6 +658,9 @@ def initialize_db() -> None:
             deletion_time TEXT NOT NULL,
             created_at TEXT NOT NULL
         );
+
+        CREATE INDEX IF NOT EXISTS idx_pending_deletions_time
+            ON pending_deletions(deletion_time);
         """
     )
     existing_super_admin = conn.execute(
