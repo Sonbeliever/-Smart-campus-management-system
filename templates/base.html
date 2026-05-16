@@ -36,7 +36,7 @@
     document.addEventListener('DOMContentLoaded', applyThemeState);
   </script>
 </head>
-<body class="{{ 'workspace-body' if current_user else '' }}">
+<body class="{% if current_user %}workspace-body role-{{ current_user.role|replace('_', '-') }}{% endif %}">
   <div class="site-bg"></div>
   {% set page_content %}{% block content %}{% endblock %}{% endset %}
 

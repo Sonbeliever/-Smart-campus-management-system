@@ -1524,6 +1524,47 @@ tr:hover {
   --border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+:root[data-theme="dark"] body.role-student .section-card,
+:root[data-theme="dark"] body.role-student .metric-card,
+:root[data-theme="dark"] body.role-student .mini-card,
+:root[data-theme="dark"] body.role-student .approval-card,
+:root[data-theme="dark"] body.role-student .status-panel,
+:root[data-theme="dark"] body.role-student .quick-stat,
+:root[data-theme="dark"] body.role-student .progress-item,
+:root[data-theme="dark"] body.role-student .table-wrap,
+:root[data-theme="dark"] body.role-student .profile-card,
+:root[data-theme="dark"] body.role-student .profile-panel {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1) !important;
+}
+
+:root[data-theme="dark"] body.role-student .section-card h1,
+:root[data-theme="dark"] body.role-student .section-card h2,
+:root[data-theme="dark"] body.role-student .section-card h3,
+:root[data-theme="dark"] body.role-student .metric-card strong,
+:root[data-theme="dark"] body.role-student .mini-card strong,
+:root[data-theme="dark"] body.role-student .approval-card strong,
+:root[data-theme="dark"] body.role-student .status-panel strong,
+:root[data-theme="dark"] body.role-student .quick-stat strong,
+:root[data-theme="dark"] body.role-student .table-wrap th,
+:root[data-theme="dark"] body.role-student .table-wrap td {
+  color: #0f172a !important;
+}
+
+:root[data-theme="dark"] body.role-student .section-card p,
+:root[data-theme="dark"] body.role-student .metric-card span,
+:root[data-theme="dark"] body.role-student .metric-card small,
+:root[data-theme="dark"] body.role-student .mini-card span,
+:root[data-theme="dark"] body.role-student .mini-card small,
+:root[data-theme="dark"] body.role-student .approval-card p,
+:root[data-theme="dark"] body.role-student .status-panel p,
+:root[data-theme="dark"] body.role-student .quick-stat span,
+:root[data-theme="dark"] body.role-student .empty-state {
+  color: #475569 !important;
+}
+
 /* ========================================
    EXTRA UTILITIES FROM REQUEST
 ======================================== */
