@@ -3360,7 +3360,7 @@ def print_id_card(student_id: int):
     if not student["id_card_generated_at"] and current_user()["role"] == "student":
         flash("Generate your ID card first.", "error")
         return redirect(url_for("id_card"))
-    response = make_response(render_template("id_card_print.html", student=student, asset_version="smart-campus-8"))
+    response = make_response(render_template("id_card_print.html", student=student, asset_version="smart-campus-9"))
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"

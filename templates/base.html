@@ -41,6 +41,7 @@
   {% set page_content %}{% block content %}{% endblock %}{% endset %}
 
   {% if current_user %}
+  <button type="button" class="theme-toggle auth-theme-toggle workspace-floating-theme-toggle" data-theme-toggle onclick="toggleTheme()" aria-label="Toggle light and dark mode"></button>
   <div class="dashboard-shell">
     <aside class="sidebar-shell" id="sidebar-shell">
       <a href="{{ url_for('home') }}" class="sidebar-brand">
@@ -207,7 +208,6 @@
           </div>
           {% endif %}
           {% block page_tools %}{% endblock %}
-          <button type="button" class="theme-toggle workspace-theme-toggle" data-theme-toggle onclick="toggleTheme()" aria-label="Toggle light and dark mode"></button>
           <a href="{{ url_for('profile_edit') }}" class="top-profile-link" aria-label="Open profile edit">
             <img src="{{ profile_image_url(current_user.profile_photo) }}" alt="Profile photo">
           </a>

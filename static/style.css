@@ -856,14 +856,14 @@ tr:hover {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 86px;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 88px;
+  gap: 9px;
   align-items: start;
 }
 
 .id-front-details {
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 
 .id-info-row {
@@ -883,14 +883,14 @@ tr:hover {
 
 .id-info-row strong {
   display: block;
-  font-size: 0.69rem;
-  line-height: 1.2;
+  font-size: 0.68rem;
+  line-height: 1.16;
   color: #16231f;
 }
 
 .id-front-photo-panel {
   justify-self: end;
-  width: 86px;
+  width: 88px;
   padding: 5px;
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(15, 106, 83, 0.08), rgba(255, 255, 255, 0.96));
@@ -912,7 +912,7 @@ tr:hover {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  padding-top: 6px;
+  padding-top: 5px;
   border-top: 1px solid rgba(11, 95, 69, 0.12);
   font-size: 0.53rem;
   font-weight: 700;
@@ -932,10 +932,10 @@ tr:hover {
   border-radius: 18px;
   border: 1px solid rgba(23, 23, 23, 0.1);
   background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
-  padding: 11px 11px 10px;
+  padding: 10px 11px 9px;
   display: grid;
   grid-template-rows: auto auto auto 1fr;
-  gap: 5px;
+  gap: 4px;
 }
 
 .id-back-heading {
@@ -948,8 +948,8 @@ tr:hover {
 
 .id-back-copy {
   margin: 0;
-  font-size: 0.53rem;
-  line-height: 1.28;
+  font-size: 0.51rem;
+  line-height: 1.22;
   color: #444;
   text-align: center;
 }
@@ -993,8 +993,9 @@ tr:hover {
   display: grid;
   justify-items: center;
   align-content: start;
-  gap: 2px;
-  padding-top: 2px;
+  gap: 1px;
+  padding-top: 0;
+  margin-top: -2px;
 }
 
 .id-back-side {
@@ -1007,7 +1008,7 @@ tr:hover {
 .id-back-emergency-note {
   display: grid;
   gap: 4px;
-  padding: 8px 9px;
+  padding: 7px 8px;
   border-radius: 10px;
   border: 1px dashed rgba(15, 95, 88, 0.18);
   background: rgba(15, 95, 88, 0.04);
@@ -1076,7 +1077,7 @@ tr:hover {
 .id-signature-box {
   display: grid;
   align-items: end;
-  min-height: 40px;
+  min-height: 34px;
   background: #e3e3e3;
   border-radius: 8px;
   padding: 0 8px 6px;
@@ -1278,8 +1279,8 @@ tr:hover {
   }
 
   .id-front-main {
-    grid-template-columns: minmax(0, 1fr) 17.4mm;
-    gap: 2mm;
+    grid-template-columns: minmax(0, 1fr) 17.8mm;
+    gap: 1.6mm;
   }
 
   .id-info-row {
@@ -1292,27 +1293,27 @@ tr:hover {
   }
 
   .id-info-row strong {
-    font-size: 5.8pt;
-    line-height: 1.12;
+    font-size: 5.6pt;
+    line-height: 1.08;
   }
 
   .id-front-photo-panel {
     background: #eef6f2 !important;
     border-color: rgba(15, 106, 83, 0.22) !important;
-    width: 17.4mm;
-    padding: 0.8mm;
+    width: 17.8mm;
+    padding: 0.7mm;
     border-radius: 1.8mm;
   }
 
   .id-front-photo-panel .id-photo {
     width: 100%;
-    height: 20.8mm;
+    height: 20.4mm;
     border-radius: 1.2mm;
   }
 
   .id-front-meta {
-    padding-top: 0.9mm;
-    font-size: 4.2pt;
+    padding-top: 0.7mm;
+    font-size: 4pt;
   }
 
   .id-card-back {
@@ -1323,8 +1324,8 @@ tr:hover {
   .id-back-shell {
     background: #ffffff !important;
     border-radius: 2.4mm;
-    padding: 1.9mm 1.9mm 1.6mm;
-    gap: 0.9mm;
+    padding: 1.5mm 1.8mm 1.3mm;
+    gap: 0.6mm;
   }
 
   .id-back-heading {
@@ -1332,17 +1333,17 @@ tr:hover {
   }
 
   .id-back-copy {
-    font-size: 4.6pt;
-    line-height: 1.22;
+    font-size: 4.2pt;
+    line-height: 1.14;
   }
 
   .id-back-contact-grid {
-    gap: 0.8mm;
+    gap: 0.6mm;
   }
 
   .id-back-contact {
     background: #e7e7e7 !important;
-    padding: 0.7mm 1.1mm;
+    padding: 0.55mm 1mm;
     border-radius: 1.2mm;
   }
 
@@ -1351,28 +1352,29 @@ tr:hover {
   }
 
   .id-back-contact strong {
-    font-size: 4.4pt;
+    font-size: 4.15pt;
   }
 
   .id-back-bottom {
-    grid-template-columns: 28mm minmax(0, 1fr);
-    gap: 1.2mm;
+    grid-template-columns: 29mm minmax(0, 1fr);
+    gap: 0.9mm;
     align-items: start;
   }
 
   .id-back-qr-panel {
-    gap: 0.5mm;
-    padding-top: 0.5mm;
+    gap: 0.2mm;
+    padding-top: 0;
+    margin-top: -0.8mm;
   }
 
   .id-back-side {
-    gap: 1mm;
+    gap: 0.8mm;
   }
 
   .id-back-emergency-note {
     background: #eef5f1 !important;
-    gap: 0.7mm;
-    padding: 1.4mm 1.5mm;
+    gap: 0.55mm;
+    padding: 1.05mm 1.2mm;
     border-radius: 1.6mm;
   }
 
@@ -1381,14 +1383,14 @@ tr:hover {
   }
 
   .id-back-emergency-note strong {
-    font-size: 4.1pt;
-    line-height: 1.14;
+    font-size: 3.8pt;
+    line-height: 1.08;
   }
 
   .id-back-seal {
     width: 4.2mm;
     height: 4.2mm;
-    margin-bottom: -1.2mm;
+    margin-bottom: -0.9mm;
   }
 
   .id-back-seal img {
@@ -1403,19 +1405,19 @@ tr:hover {
   }
 
   .id-card-qr img {
-    width: 23.5mm;
-    height: 23.5mm;
+    width: 24.3mm;
+    height: 24.3mm;
     border-radius: 0.8mm;
   }
 
   .id-scan-hint {
-    font-size: 3.7pt;
+    font-size: 3.5pt;
   }
 
   .id-signature-box {
     background: #e3e3e3 !important;
-    min-height: 7.6mm;
-    padding: 0 1.1mm 0.8mm;
+    min-height: 6.4mm;
+    padding: 0 1mm 0.65mm;
     border-radius: 1.4mm;
   }
 
@@ -1568,17 +1570,11 @@ tr:hover {
   height: 20px;
 }
 
-.workspace-theme-toggle {
-  position: static;
-  width: 42px;
-  height: 42px;
-  min-width: 42px;
-  padding: 0;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+.workspace-floating-theme-toggle {
+  top: 16px;
+  right: 16px;
+  z-index: 1200;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
 }
 
 #reader {
