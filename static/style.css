@@ -1565,6 +1565,19 @@ tr:hover {
   height: 20px;
 }
 
+.workspace-theme-toggle {
+  position: static;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
 #reader {
   width: 350px;
   margin: auto;

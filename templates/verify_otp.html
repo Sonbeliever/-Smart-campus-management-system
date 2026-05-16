@@ -4,10 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ app_name }} | Verify Email</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=smart-campus-ui-3">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=smart-campus-auth-1">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('smart-campus-theme');
+      const preferredDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', savedTheme || (preferredDark ? 'dark' : 'light'));
+    })();
+
+    function applyThemeState() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const toggle = document.getElementById('theme-toggle');
+      if (!toggle) return;
+      toggle.setAttribute('aria-pressed', currentTheme === 'dark' ? 'true' : 'false');
+      toggle.setAttribute('title', currentTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      toggle.innerHTML = currentTheme === 'dark'
+        ? '<svg class="theme-toggle-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2.2"></path><path d="M12 19.8V22"></path><path d="m4.93 4.93 1.56 1.56"></path><path d="m17.51 17.51 1.56 1.56"></path><path d="M2 12h2.2"></path><path d="M19.8 12H22"></path><path d="m4.93 19.07 1.56-1.56"></path><path d="m17.51 6.49 1.56-1.56"></path></svg>'
+        : '<svg class="theme-toggle-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3c0 .36-.01.72-.01 1.08A7.7 7.7 0 0 0 18.92 11.8c.36 0 .72 0 1.08-.01Z"></path></svg>';
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('smart-campus-theme', nextTheme);
+      applyThemeState();
+    }
+
+    document.addEventListener('DOMContentLoaded', applyThemeState);
+  </script>
 </head>
 <body class="auth-page">
   <div class="site-bg"></div>
+  <button type="button" id="theme-toggle" class="theme-toggle auth-theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark mode"></button>
   <main class="auth-shell auth-shell-wide">
     <section class="auth-panel auth-hero">
       <div class="brand-lockup">
