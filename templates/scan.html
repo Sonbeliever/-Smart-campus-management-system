@@ -164,6 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const typeField = document.getElementById("session_type");
   const courseWrap = document.getElementById("course_select_wrap");
   const statusBox = document.getElementById("scan-status");
+  let audioContext;
 
   function syncCourseVisibility() {
     courseWrap.style.display = typeField.value === "course" ? "block" : "none";
@@ -178,6 +179,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const html5QrCode = new Html5Qrcode("reader");
   let locked = false;
+
+  function getAudioContext() {
+    if (!audioContext) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      audioContext = new Ctx();
+    }
+    return audioContext;
+  }
+
+  function playTone(frequency, duration, type = "sine", volume = 0.05) {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
+    gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + duration);
+  }
+
+  function playSuccessSound() {
+    playTone(880, 0.12, "sine", 0.055);
+    setTimeout(() => playTone(1174, 0.14, "sine", 0.045), 120);
+  }
+
+  function playDuplicateSound() {
+    playTone(320, 0.2, "triangle", 0.06);
+  }
 
   async function handleScan(decodedText) {
     if (locked) return;
@@ -197,6 +234,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const payload = await response.json();
       statusBox.textContent = payload.message || "Attendance updated.";
       statusBox.className = response.ok ? "result-box success-box" : "result-box error-box";
+      if (response.ok) {
+        playSuccessSound();
+      } else if (response.status === 409) {
+        playDuplicateSound();
+        window.alert(payload.message || "This student has already been marked for this session.");
+      }
     } catch (error) {
       statusBox.textContent = "Unable to send the attendance scan.";
       statusBox.className = "result-box error-box";
