@@ -17,9 +17,10 @@
       const toggle = document.getElementById('theme-toggle');
       if (!toggle) return;
       toggle.setAttribute('aria-pressed', currentTheme === 'dark' ? 'true' : 'false');
+      toggle.setAttribute('title', currentTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
       toggle.innerHTML = currentTheme === 'dark'
-        ? '<span class="theme-toggle-icon">L</span><span>Light</span>'
-        : '<span class="theme-toggle-icon">D</span><span>Dark</span>';
+        ? '<svg class="theme-toggle-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2.2"></path><path d="M12 19.8V22"></path><path d="m4.93 4.93 1.56 1.56"></path><path d="m17.51 17.51 1.56 1.56"></path><path d="M2 12h2.2"></path><path d="M19.8 12H22"></path><path d="m4.93 19.07 1.56-1.56"></path><path d="m17.51 6.49 1.56-1.56"></path></svg>'
+        : '<svg class="theme-toggle-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3c0 .36-.01.72-.01 1.08A7.7 7.7 0 0 0 18.92 11.8c.36 0 .72 0 1.08-.01Z"></path></svg>';
     }
 
     function toggleTheme() {
