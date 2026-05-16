@@ -288,6 +288,21 @@ button:hover {
   display: block;
 }
 
+.password-toggle,
+.password-toggle:hover,
+.password-toggle:focus,
+.password-toggle:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.password-toggle:focus-visible {
+  outline: none;
+  color: var(--accent);
+}
+
 .danger-zone {
   padding: 20px;
   background: #fef2f2;
@@ -1532,6 +1547,19 @@ tr:hover {
   transform: translateY(-2px);
 }
 
+.auth-theme-toggle {
+  top: 18px;
+  right: 18px;
+  min-width: 110px;
+  justify-content: center;
+  gap: 8px;
+}
+
+.theme-toggle-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
 #reader {
   width: 350px;
   margin: auto;
@@ -1631,6 +1659,13 @@ body.workspace-body .site-bg {
   width: 100%;
   height: 100%;
   z-index: -1;
+}
+
+:root[data-theme="dark"] .auth-page .site-bg {
+  background:
+    linear-gradient(180deg, rgba(3, 7, 18, 0.78), rgba(3, 7, 18, 0.9)),
+    url('/static/login-bg.jpg') center center / cover no-repeat,
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 28%);
 }
 
 .dashboard-shell {
@@ -2656,6 +2691,10 @@ tbody td {
   grid-template-columns: minmax(320px, 0.95fr) minmax(420px, 1.05fr);
 }
 
+.auth-shell-login {
+  grid-template-columns: minmax(320px, 1.08fr) minmax(360px, 0.92fr);
+}
+
 .auth-panel {
   border-radius: 30px;
   padding: 34px;
@@ -2680,6 +2719,12 @@ tbody td {
   gap: 14px;
 }
 
+.auth-campus-note {
+  margin: 4px 0 0;
+  color: var(--text-soft);
+  font-size: 0.94rem;
+}
+
 .landing-logo {
   width: 70px;
   height: 70px;
@@ -2693,12 +2738,91 @@ tbody td {
   margin: 10px 0 14px;
 }
 
+.auth-copy {
+  display: grid;
+  gap: 14px;
+}
+
 .lede {
   margin: 0;
   max-width: 34rem;
   font-size: 1rem;
   line-height: 1.8;
   color: var(--text-soft);
+}
+
+.auth-form-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.9)),
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 22%);
+  box-shadow: 0 26px 60px rgba(15, 23, 42, 0.14);
+}
+
+:root[data-theme="dark"] .auth-form-panel,
+:root[data-theme="dark"] .auth-hero {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.78)),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 24%);
+}
+
+.auth-form-heading {
+  margin-bottom: 18px;
+}
+
+.auth-subcopy {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.65;
+}
+
+.auth-form {
+  gap: 16px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.auth-form input,
+.auth-form select {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  font-size: 0.98rem;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+:root[data-theme="dark"] .auth-form input,
+:root[data-theme="dark"] .auth-form select {
+  background: rgba(15, 23, 42, 0.78);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #f8fafc;
+}
+
+.auth-form input:focus,
+.auth-form select:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.auth-form input[type="file"] {
+  padding: 12px 14px;
+}
+
+.auth-form button[type="submit"] {
+  min-height: 54px;
+  border-radius: 18px;
+  font-size: 1rem;
+  font-weight: 800;
 }
 
 .auth-notes,
@@ -2724,6 +2848,10 @@ tbody td {
 .login-panel {
   max-width: 500px;
   justify-self: end;
+}
+
+.auth-form-panel .form-hint {
+  text-align: center;
 }
 
 .form-hint {
@@ -2780,6 +2908,50 @@ tbody td {
   .dashboard-shell,
   .auth-shell {
     padding: 18px;
+  }
+
+  .auth-page {
+    padding: 18px 14px 24px;
+    align-items: flex-start;
+  }
+
+  .auth-shell,
+  .auth-shell-wide,
+  .auth-shell-login {
+    min-height: auto;
+    padding: 76px 0 0;
+    gap: 16px;
+  }
+
+  .auth-panel {
+    padding: 24px 18px;
+    border-radius: 24px;
+  }
+
+  .auth-hero {
+    min-height: 0;
+    gap: 20px;
+  }
+
+  .brand-lockup {
+    align-items: flex-start;
+  }
+
+  .landing-logo {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+  }
+
+  .auth-hero h1 {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+  }
+
+  .auth-theme-toggle {
+    top: 12px;
+    right: 12px;
+    min-width: 98px;
+    padding: 9px 14px;
   }
 
   .menu-toggle {
@@ -3279,8 +3451,8 @@ tbody td {
   
   .password-toggle {
     right: 8px;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
   }
   
   .password-toggle svg {
@@ -3415,8 +3587,8 @@ tbody td {
   
   .password-toggle {
     right: 6px;
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
   }
   
   .password-toggle svg {

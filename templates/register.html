@@ -4,48 +4,70 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ app_name }} | Student Registration</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=smart-campus-ui-3">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=smart-campus-auth-1">
   <script>
+    (function () {
+      const savedTheme = localStorage.getItem('smart-campus-theme');
+      const preferredDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', savedTheme || (preferredDark ? 'dark' : 'light'));
+    })();
+
+    function applyThemeState() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const toggle = document.getElementById('theme-toggle');
+      if (!toggle) return;
+      toggle.setAttribute('aria-pressed', currentTheme === 'dark' ? 'true' : 'false');
+      toggle.innerHTML = currentTheme === 'dark'
+        ? '<span class="theme-toggle-icon">L</span><span>Light</span>'
+        : '<span class="theme-toggle-icon">D</span><span>Dark</span>';
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('smart-campus-theme', nextTheme);
+      applyThemeState();
+    }
+
     function togglePassword(inputId, button) {
       const input = document.getElementById(inputId);
       const icon = button.querySelector('svg');
-      
+      if (!input || !icon) return;
+
       if (input.type === 'password') {
         input.type = 'text';
-        // Change to eye-off icon
         icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
       } else {
         input.type = 'password';
-        // Change to eye icon
         icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
       }
     }
-  </script>
-  <script>
+
     function checkPasswordStrength() {
       const password = document.getElementById('password').value;
       const strengthBar = document.getElementById('password-strength-bar');
       const strengthText = document.getElementById('password-strength-text');
-      
+
       let score = 0;
       let message = '';
-      
+
       if (password.length === 0) {
         strengthBar.style.width = '0%';
         strengthBar.className = 'password-strength-bar';
         strengthText.textContent = '';
         return;
       }
-      
+
       if (password.length >= 8) score++;
       if (/[a-z]/.test(password)) score++;
       if (/[A-Z]/.test(password)) score++;
       if (/[0-9]/.test(password)) score++;
       if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
-      
+
       const percentage = (score / 5) * 100;
       strengthBar.style.width = percentage + '%';
-      
+
       if (score <= 2) {
         strengthBar.className = 'password-strength-bar weak';
         message = 'Weak password';
@@ -59,45 +81,61 @@
         strengthBar.className = 'password-strength-bar very-strong';
         message = 'Very strong password';
       }
-      
+
       strengthText.textContent = message;
     }
+
+    document.addEventListener('DOMContentLoaded', applyThemeState);
   </script>
+</head>
+<body class="auth-page">
   <div class="site-bg"></div>
+  <button type="button" id="theme-toggle" class="theme-toggle auth-theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark mode"></button>
+
   <main class="auth-shell auth-shell-wide">
     <section class="auth-panel auth-hero">
       <div class="brand-lockup">
         <img src="{{ url_for('static', filename='kasu.jpg') }}" alt="KASU Logo" class="landing-logo">
-        <p class="eyebrow">Kaduna State University</p>
+        <div>
+          <p class="eyebrow">Kaduna State University</p>
+          <p class="auth-campus-note">Smart Campus Management System</p>
+        </div>
       </div>
-      <h1>Create your campus identity.</h1>
-      <p class="lede">
-        Registration creates your student account, stores your department profile,
-        and prepares the QR code that will be reused for attendance and your ID card.
-      </p>
+      <div class="auth-copy">
+        <h1>Create your campus identity.</h1>
+        <p class="lede">
+          Registration creates your student account, stores your department profile,
+          and prepares the QR code that will be reused for attendance and your ID card.
+        </p>
+      </div>
       <div class="mini-list">
         <span>Profile photo required</span>
         <span>Matric number must be unique</span>
-        <span>Department is assigned at sign-up</span>
+        <span>Department assigned at sign-up</span>
       </div>
     </section>
 
-    <section class="auth-panel">
-      <p class="eyebrow">Student form</p>
-      <h2>Register</h2>
+    <section class="auth-panel auth-form-panel">
+      <div class="auth-form-heading">
+        <p class="eyebrow">Student form</p>
+        <h2>Register</h2>
+        <p class="auth-subcopy">Complete the details below to create your student account.</p>
+      </div>
+
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="flash-stack">
+        <div class="flash-stack auth-flash-stack">
           {% for category, message in messages %}
           <div class="flash flash-{{ category }}">{{ message }}</div>
           {% endfor %}
         </div>
         {% endif %}
       {% endwith %}
-      <form method="post" enctype="multipart/form-data" class="stack-form">
+
+      <form method="post" enctype="multipart/form-data" class="stack-form auth-form">
         <label>
           Full name
-          <input type="text" name="full_name" required>
+          <input type="text" name="full_name" autocomplete="name" required>
         </label>
         <label>
           Matric number
@@ -105,11 +143,11 @@
         </label>
         <label>
           Email
-          <input type="email" name="email" required>
+          <input type="email" name="email" autocomplete="email" required>
         </label>
         <label>
           Phone number
-          <input type="text" name="phone" required>
+          <input type="text" name="phone" autocomplete="tel" required>
         </label>
         <label>
           Department
@@ -127,8 +165,8 @@
         <label>
           Password
           <div class="password-input-wrapper">
-            <input type="password" name="password" id="password" required oninput="checkPasswordStrength()">
-            <button type="button" class="password-toggle" onclick="togglePassword('password', this)">
+            <input type="password" name="password" id="password" autocomplete="new-password" required oninput="checkPasswordStrength()">
+            <button type="button" class="password-toggle" onclick="togglePassword('password', this)" aria-label="Show or hide password">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
@@ -143,8 +181,8 @@
         <label>
           Confirm password
           <div class="password-input-wrapper">
-            <input type="password" name="confirm_password" id="confirm-password" required>
-            <button type="button" class="password-toggle" onclick="togglePassword('confirm-password', this)">
+            <input type="password" name="confirm_password" id="confirm-password" autocomplete="new-password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('confirm-password', this)" aria-label="Show or hide confirm password">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
@@ -154,6 +192,7 @@
         </label>
         <button type="submit">Create student account</button>
       </form>
+
       <p class="form-hint">
         Already registered?
         <a href="{{ url_for('login') }}">Back to login</a>
