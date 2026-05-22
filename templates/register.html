@@ -140,15 +140,15 @@
         </label>
         <label>
           Matric number
-          <input type="text" name="matric_number" placeholder="KASU/SCE/23/CSC/0001" required>
+          <input type="text" name="matric_number" placeholder="KASU/SCE/23/CSC/...." required>
         </label>
         <label>
           Email
-          <input type="email" name="email" autocomplete="email" required>
+          <input type="email" name="email" placeholder="Email" autocomplete="email" required>
         </label>
         <label>
           Phone number
-          <input type="text" name="phone" autocomplete="tel" required>
+          <input type="text" name="phone" placeholder="phone_number" autocomplete="tel" required>
         </label>
         <label>
           Department
@@ -166,7 +166,7 @@
         <label>
           Password
           <div class="password-input-wrapper">
-            <input type="password" name="password" id="password" autocomplete="new-password" required oninput="checkPasswordStrength()">
+            <input type="password" placeholder="Enter password" name="password" id="password" autocomplete="new-password" required oninput="checkPasswordStrength()">
             <button type="button" class="password-toggle" onclick="togglePassword('password', this)" aria-label="Show or hide password">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -182,7 +182,7 @@
         <label>
           Confirm password
           <div class="password-input-wrapper">
-            <input type="password" name="confirm_password" id="confirm-password" autocomplete="new-password" required>
+            <input type="password" placeholder="confirm_password" name="confirm_password" id="confirm-password" autocomplete="new-password" required>
             <button type="button" class="password-toggle" onclick="togglePassword('confirm-password', this)" aria-label="Show or hide confirm password">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>

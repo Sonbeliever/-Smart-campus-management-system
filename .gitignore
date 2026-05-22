@@ -1,11 +1,25 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-static/uploads/
-smoke_test*.db
-media/
-data/
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+.env
+.venv
+
+# Database files
+*.db
+*.sqlite3
+
+# Media and runtime data
 .runtime-data/
 .smart-campus-data/
-*.db-shm
-*.db-wal
-*.db-journal
+static/qr/
+static/uploads/
+media/
+
+# System files
+.DS_Store
+Thumbs.db

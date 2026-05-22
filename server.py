@@ -2274,6 +2274,32 @@ def create_department():
     return redirect(url_for("home"))
 
 
+@app.route("/departments/<int:department_id>/update", methods=["POST"])
+@roles_required("super_admin")
+def update_department(department_id: int):
+    name = normalize_text(request.form.get("name"))
+    code = normalize_department_code(request.form.get("code"))
+    description = normalize_text(request.form.get("description"))
+
+    if not name or not code:
+        flash("Department name and code are required.", "error")
+        return redirect(url_for("home"))
+
+    conn = get_conn()
+    try:
+        conn.execute(
+            "UPDATE departments SET name = ?, code = ?, description = ? WHERE id = ?",
+            (name, code, description, department_id),
+        )
+        conn.commit()
+        flash("Department updated successfully.", "success")
+    except sqlite3.IntegrityError:
+        flash("Department name or code already exists.", "error")
+    finally:
+        conn.close()
+    return redirect(url_for("home"))
+
+
 @app.route("/departments/<int:department_id>/delete", methods=["POST"])
 @roles_required("super_admin")
 def delete_department(department_id: int):
@@ -2490,6 +2516,101 @@ def toggle_account_status(account_id: int):
     conn.commit()
     conn.close()
     flash("Account status updated.", "success")
+    return redirect(url_for("home"))
+
+
+@app.route("/api/accounts/<int:account_id>")
+@roles_required("super_admin", "department_admin")
+def api_get_account(account_id: int):
+    user = current_user()
+    account = get_account(account_id)
+    if not account:
+        return jsonify({"error": "Account not found"}), 404
+
+    if user["role"] == "department_admin":
+        if account["role"] != "student" or account["department_id"] != user["department_id"]:
+            return jsonify({"error": "Forbidden"}), 403
+
+    # Convert row to dict for JSON serialization
+    return jsonify(dict(account))
+
+
+@app.route("/api/departments/<int:department_id>")
+@roles_required("super_admin")
+def api_get_department(department_id: int):
+    dept = get_department(department_id)
+    if not dept:
+        return jsonify({"error": "Department not found"}), 404
+    return jsonify(dict(dept))
+
+
+@app.route("/accounts/<int:account_id>/update", methods=["POST"])
+@roles_required("super_admin", "department_admin")
+def update_account_admin(account_id: int):
+    user = current_user()
+    target = get_account(account_id)
+    if not target:
+        abort(404)
+
+    if user["role"] == "department_admin":
+        if target["role"] != "student":
+            abort(403)
+        require_department_access(user, target["department_id"])
+
+    username = normalize_username(request.form.get("username"))
+    full_name = normalize_text(request.form.get("full_name"))
+    email = normalize_email(request.form.get("email"))
+    password = normalize_text(request.form.get("password"))
+    matric_number = normalize_matric(request.form.get("matric_number"))
+    department_id = request.form.get("department_id")
+
+    if not all([username, full_name, email]):
+        flash("Username, Full Name, and Email are required.", "error")
+        return redirect(url_for("home"))
+
+    conn = get_conn()
+    try:
+        # Check for conflicts with other accounts
+        conflict = conn.execute(
+            """
+            SELECT id FROM accounts 
+            WHERE (LOWER(username) = ? OR LOWER(email) = ? OR (matric_number IS NOT NULL AND UPPER(matric_number) = ?)) 
+            AND id != ?
+            """,
+            (username, email, matric_number, account_id),
+        ).fetchone()
+
+        if conflict:
+            flash("The username, email, or matric number is already assigned to another account.", "error")
+            return redirect(url_for("home"))
+
+        sql = "UPDATE accounts SET username = ?, full_name = ?, email = ?, matric_number = ?, updated_at = ?"
+        params = [username, full_name, email, matric_number, now_iso()]
+
+        # Allow super_admin to update department as well
+        if user["role"] == "super_admin" and department_id:
+            sql = sql.replace("updated_at = ?", "department_id = ?, updated_at = ?")
+            params.insert(-1, int(department_id))
+
+        if password:
+            is_strong, msg, _ = validate_password_strength(password)
+            if not is_strong:
+                flash(msg, "error")
+                return redirect(url_for("home"))
+            sql += ", password = ?"
+            params.append(generate_password_hash(password))
+
+        sql += " WHERE id = ?"
+        params.append(account_id)
+        conn.execute(sql, params)
+        conn.commit()
+        
+        if target["role"] == "student":
+            ensure_student_qr(account_id)
+            
+        flash("Account updated successfully.", "success")
+    finally:
+        conn.close()
     return redirect(url_for("home"))
 
 
